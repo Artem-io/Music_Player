@@ -4,7 +4,7 @@ project(Music_Player_2 VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick Qml Multimedia)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -17,6 +17,9 @@ qt_add_qml_module(appMusic_Player_2
     VERSION 1.0
     QML_FILES
         Main.qml
+        QML_FILES Bottom_Bar.qml
+        QML_FILES File_List.qml
+        SOURCES audioplayer.h audioplayer.cpp
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -31,7 +34,12 @@ set_target_properties(appMusic_Player_2 PROPERTIES
 )
 
 target_link_libraries(appMusic_Player_2
-    PRIVATE Qt6::Quick
+    PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Quick
+    Qt6::Qml
+    Qt6::Multimedia
 )
 
 include(GNUInstallDirs)

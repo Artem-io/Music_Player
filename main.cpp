@@ -1,9 +1,13 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
+#include "audioplayer.h"
+
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+
+    qmlRegisterType<AudioPlayer>("AudioPlayer", 1, 0, "AudioPlayer");
 
     QQmlApplicationEngine engine;
     QObject::connect(
