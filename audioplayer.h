@@ -21,7 +21,6 @@ class AudioPlayer: public QObject
     Q_PROPERTY(QStringList filePaths READ getFilePaths NOTIFY filePathsChanged)
     Q_PROPERTY(QList<int> fileDurations READ getFileDurations NOTIFY fileDurationsChanged)
     Q_PROPERTY(int position READ getPosition WRITE setPosition NOTIFY positionChanged)
-    Q_PROPERTY(int duration READ getDuration NOTIFY durationChanged)
     Q_PROPERTY(float volume READ getVolume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool isPlaying READ isPlaying NOTIFY playingStateChanged)
     Q_PROPERTY(int curId READ getCurId WRITE setCurId NOTIFY curIdChanged)
@@ -32,7 +31,6 @@ public:
     QStringList getFilePaths() { return filePaths; }
     QList<int> getFileDurations() { return fileDurations; }
     int getPosition() { return player->position(); }
-    int getDuration() { return player->duration(); }
     float getVolume() { return audioOutput->volume(); }
     bool isPlaying() { return player->playbackState() == QMediaPlayer::PlayingState; }
     int getCurId() { return curId; }
@@ -48,7 +46,6 @@ signals:
     void filePathsChanged();
     void fileDurationsChanged();
     void positionChanged(int);
-    void durationChanged();
     void volumeChanged();
     void playingStateChanged();
     void curIdChanged();

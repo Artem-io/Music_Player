@@ -8,6 +8,7 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), curId(-1)
     audioOutput->setVolume(0.2);
 
     connect(player, &QMediaPlayer::playbackStateChanged, this, &AudioPlayer::playingStateChanged);
+    connect(player, &QMediaPlayer::positionChanged, this, &AudioPlayer::positionChanged);
 }
 
 void AudioPlayer::setFiles(const QStringList& fileUrls)

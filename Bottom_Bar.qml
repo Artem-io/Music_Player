@@ -34,8 +34,7 @@ Item {
                 enabled: audioPlayer.curId >= 0 && audioPlayer.curId < audioPlayer.filePaths.length
                 onClicked: {
                     audioPlayer.togglePlayPause();
-                    //console.log("play/pause clicked. audioPlayer.isPlaying:", audioPlayer.isPlaying);
-                    //console.log("File path length: ", audioPlayer.filePaths.length)
+                    //console.log("elapsed: ", formatTime(audioPlayer.position))
                 }
             }
 
@@ -45,7 +44,7 @@ Item {
                 enabled: audioPlayer.curId < audioPlayer.filePaths.length-1
                 onClicked: {
                     audioPlayer.curId++
-                    if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause(); // [Add] Ensure playback
+                    if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause();
                 }
             }
         }
@@ -57,9 +56,29 @@ Item {
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 20
             from: 0
-            to: audioPlayer.duration
-            value: audioPlayer.position
-            onMoved: audioPlayer.setPosition(value)
+            to: audioPlayer.fileDurations[audioPlayer.curId]
+            value: audioPlayer.position >= 0 ? audioPlayer.position : 0
+            onMoved: {
+                audioPlayer.setPosition(value)
+                console.log("Slider value (should be max. 1): ", audioPlayer.position)
+            }
+
+            Text {
+                id: elapsedTime
+                text: formatTime(audioPlayer.position)
+                anchors.right: progressSlider.left
+                anchors.rightMargin: 10
+                anchors.verticalCenter: progressSlider.verticalCenter
+            }
+
+            Text {
+                id: totalTime
+                text: audioPlayer.curId >= 0 ?
+                          formatTime(audioPlayer.fileDurations[audioPlayer.curId]) : "0:00"
+                anchors.left: progressSlider.right
+                anchors.leftMargin: 10
+                anchors.verticalCenter: progressSlider.verticalCenter
+            }
         }
 
         Slider {
@@ -72,22 +91,6 @@ Item {
             to: 1
             value: audioPlayer.volume
             onMoved: audioPlayer.setVolume(value)
-        }
-
-        Text {
-            id: elapsedTime
-            text: formatTime(audioPlayer.position)
-            anchors.right: progressSlider.left
-            anchors.rightMargin: 10
-            anchors.verticalCenter: progressSlider.verticalCenter
-        }
-
-        Text {
-            id: totalTime
-            text: formatTime(audioPlayer.duration)
-            anchors.left: progressSlider.right
-            anchors.leftMargin: 10
-            anchors.verticalCenter: progressSlider.verticalCenter
         }
     }
 
