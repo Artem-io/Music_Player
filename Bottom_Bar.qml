@@ -60,7 +60,7 @@ Item {
             value: audioPlayer.position >= 0 ? audioPlayer.position : 0
             onMoved: {
                 audioPlayer.setPosition(value)
-                console.log("Slider value (should be max. 1): ", audioPlayer.position)
+                //console.log("Slider value (should be max. 1): ", audioPlayer.position)
             }
 
             Text {
@@ -91,6 +91,19 @@ Item {
             to: 1
             value: audioPlayer.volume
             onMoved: audioPlayer.setVolume(value)
+        }
+
+        Connections {
+            target: audioPlayer
+            function onPlayingStateChanged()
+            {
+                if (!audioPlayer.isPlaying &&
+                        audioPlayer.position >= audioPlayer.fileDurations[audioPlayer.curId] - 100 &&
+                        audioPlayer.curId < audioPlayer.filePaths.length - 1) {
+                    audioPlayer.setCurId(audioPlayer.curId+1)
+                    audioPlayer.togglePlayPause()
+                }
+            }
         }
     }
 
