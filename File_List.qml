@@ -43,7 +43,7 @@ Item {
             delegate: Rectangle {
                 width: fileList.width
                 height: 40
-                color: index === audioPlayer.curId ? "lightblue" : "white"
+                color: audioPlayer.curId === audioPlayer.filePaths.indexOf(modelData) ? "lightblue" : "white"
                 border.color: "gray"
 
                 Row {
@@ -82,7 +82,8 @@ Item {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        audioPlayer.setCurId(index);
+                        let originalIndex = audioPlayer.filePaths.indexOf(modelData);
+                        audioPlayer.setCurId(originalIndex);
                         audioPlayer.togglePlayPause();
                     }
                 }

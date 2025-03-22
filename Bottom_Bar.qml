@@ -23,11 +23,13 @@ Item {
                 enabled: fileList.filteredFiles.length>0
                 text: "Shuffle"
                 onClicked: {
-                    let randomId;
-                    do randomId = Math.floor(Math.random() * fileList.filteredFiles.length);
-                    while (randomId === audioPlayer.curId);
-                    audioPlayer.setCurId(randomId)
-                    audioPlayer.togglePlayPause()
+                    if (fileList.filteredFiles.length > 0) {
+                        let randomFilteredIndex = Math.floor(Math.random() * fileList.filteredFiles.length);
+                        let randomFilePath = fileList.filteredFiles[randomFilteredIndex];
+                        let originalIndex = audioPlayer.filePaths.indexOf(randomFilePath);
+                        audioPlayer.setCurId(originalIndex);
+                        audioPlayer.togglePlayPause();
+                    }
                 }
             }
 
