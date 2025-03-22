@@ -30,6 +30,11 @@ Window {
         onAccepted: audioPlayer.setFiles(fileDialog.selectedFiles);
     }
 
+    // FolderDialog {
+    //     id: folderDialog
+    //     onAccepted: audioPlayer.loadFilesFromFolder(folderDialog.selectedFolder.toString())
+    // }
+
     Button {
         id: addFilesButton
         text: "Add Files"

@@ -8,6 +8,8 @@
 #include <QList>
 #include <QFileInfo>
 #include <QCoreApplication>
+#include <QSettings>
+#include <QDir>
 
 class AudioPlayer: public QObject
 {
@@ -41,6 +43,7 @@ public slots:
     void togglePlayPause();
     void setPosition(int);
     void setVolume(float);
+    void loadFilesFromFolder(const QString&);
 
 signals:
     void filePathsChanged();
@@ -49,6 +52,10 @@ signals:
     void volumeChanged();
     void playingStateChanged();
     void curIdChanged();
+
+private:
+    void savePaths(const QStringList&);
+    QStringList getLastFolderPath();
 };
 
 #endif
