@@ -19,6 +19,19 @@ Item {
             spacing: 20
 
             Button {
+                id: shuffle
+                enabled: audioPlayer.filePaths.length > 0
+                text: "Shuffle"
+                onClicked: {
+                    let randomId;
+                    do randomId = Math.floor(Math.random() * audioPlayer.filePaths.length);
+                    while (randomId === audioPlayer.curId && audioPlayer.filePaths.length > 1);
+                    audioPlayer.setCurId(randomId)
+                    audioPlayer.togglePlayPause()
+                }
+            }
+
+            Button {
                 id: prev
                 text: "Previous"
                 enabled: audioPlayer.curId > 0
@@ -31,10 +44,9 @@ Item {
             Button {
                 id: playPause
                 text: audioPlayer.isPlaying ? "Pause" : "Play"
-                enabled: audioPlayer.curId >= 0 && audioPlayer.curId < audioPlayer.filePaths.length
+                enabled: audioPlayer.filePaths.length > 0
                 onClicked: {
                     audioPlayer.togglePlayPause();
-                    //console.log("elapsed: ", formatTime(audioPlayer.position))
                 }
             }
 
@@ -60,7 +72,6 @@ Item {
             value: audioPlayer.position >= 0 ? audioPlayer.position : 0
             onMoved: {
                 audioPlayer.setPosition(value)
-                //console.log("Slider value (should be max. 1): ", audioPlayer.position)
             }
 
             Text {
