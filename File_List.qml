@@ -1,19 +1,43 @@
 import QtQuick
 import QtQuick.Controls
+import AudioPlayer 1.0
 
 Item {
     id: root
     width: Math.min(500, parent.width * 0.8)
     height: Math.min(400, parent.height * 0.5)
 
+    property string searchQuery: ""
+
+    property var filteredFiles: {
+        if (searchQuery === "") return audioPlayer.filePaths;
+        else {
+            return audioPlayer.filePaths.filter(function(filePath) {
+                let fileName = filePath.split('/').pop().toLowerCase();
+                return fileName.includes(searchQuery.toLowerCase());
+            });
+        }
+    }
+
     Rectangle {
         id: fileListContainer
         anchors.fill: parent
 
+        TextField {
+            id: searchField
+            width: parent.width
+            height: 40
+            placeholderText: "Search..."
+            onTextChanged: searchQuery = text;
+        }
+
         ListView {
             id: fileList
-            anchors.fill: parent
-            model: audioPlayer.filePaths
+            anchors.top: searchField.bottom
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            model: filteredFiles
             clip: true
 
             delegate: Rectangle {
@@ -42,17 +66,12 @@ Item {
 
                     Text { // Song Duration
                         text: {
-                            if (index >= 0 && index < audioPlayer.fileDurations.length) {
-                                let duration = audioPlayer.fileDurations[index];
-                                if (duration > 0) {
-                                    return formatTime(duration);
-                                }
-                                else if (duration === -2) {
-                                    return "Invalid";
-                                }
-                                else {
-                                    return "Loading...";
-                                }
+                            let originalIndex = audioPlayer.filePaths.indexOf(modelData);
+                            if (originalIndex >= 0 && originalIndex < audioPlayer.fileDurations.length) {
+                                let duration = audioPlayer.fileDurations[originalIndex];
+                                if (duration > 0) return formatTime(duration);
+                                else if (duration === -2) return "Invalid";
+                                else return "Loading...";
                             }
                             return "0:00";
                         }
@@ -65,7 +84,6 @@ Item {
                     onClicked: {
                         audioPlayer.setCurId(index);
                         audioPlayer.togglePlayPause();
-
                     }
                 }
             }

@@ -20,12 +20,12 @@ Item {
 
             Button {
                 id: shuffle
-                enabled: audioPlayer.filePaths.length > 0
+                enabled: fileList.filteredFiles.length>0
                 text: "Shuffle"
                 onClicked: {
                     let randomId;
-                    do randomId = Math.floor(Math.random() * audioPlayer.filePaths.length);
-                    while (randomId === audioPlayer.curId && audioPlayer.filePaths.length > 1);
+                    do randomId = Math.floor(Math.random() * fileList.filteredFiles.length);
+                    while (randomId === audioPlayer.curId);
                     audioPlayer.setCurId(randomId)
                     audioPlayer.togglePlayPause()
                 }
@@ -34,7 +34,7 @@ Item {
             Button {
                 id: prev
                 text: "Previous"
-                enabled: audioPlayer.curId > 0
+                enabled: audioPlayer.curId>0 && fileList.filteredFiles.length>0
                 onClicked: {
                     audioPlayer.curId--
                     if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause();
@@ -44,16 +44,14 @@ Item {
             Button {
                 id: playPause
                 text: audioPlayer.isPlaying ? "Pause" : "Play"
-                enabled: audioPlayer.filePaths.length > 0
-                onClicked: {
-                    audioPlayer.togglePlayPause();
-                }
+                enabled: fileList.filteredFiles.length>0
+                onClicked: audioPlayer.togglePlayPause();
             }
 
             Button {
                 id: next
                 text: "Next"
-                enabled: audioPlayer.curId < audioPlayer.filePaths.length-1
+                enabled: audioPlayer.curId < fileList.filteredFiles.length-1
                 onClicked: {
                     audioPlayer.curId++
                     if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause();
@@ -70,9 +68,7 @@ Item {
             from: 0
             to: audioPlayer.fileDurations[audioPlayer.curId]
             value: audioPlayer.position >= 0 ? audioPlayer.position : 0
-            onMoved: {
-                audioPlayer.setPosition(value)
-            }
+            onMoved: audioPlayer.setPosition(value)
 
             Text {
                 id: elapsedTime

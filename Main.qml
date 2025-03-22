@@ -14,21 +14,19 @@ Window {
     }
 
     Bottom_Bar {
+        id: bottomBar
+    }
 
+    File_List {
+        id: fileList
+        anchors.centerIn: parent
     }
 
     FileDialog {
         id: fileDialog
         nameFilters: ["MP3 Files (*.mp3 *.m4a *.wav *.aac *.opus)"]
         fileMode: FileDialog.OpenFiles
-        onAccepted: {
-            audioPlayer.setFiles(fileDialog.selectedFiles);
-        }
-    }
-
-    File_List {
-        id: fileList
-        anchors.centerIn: parent
+        onAccepted: audioPlayer.setFiles(fileDialog.selectedFiles);
     }
 
     Button {
@@ -37,8 +35,6 @@ Window {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.margins: 20
-        onClicked: {
-            fileDialog.open();
-        }
+        onClicked: fileDialog.open();
     }
 }
