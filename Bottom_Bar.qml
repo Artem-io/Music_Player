@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import AudioPlayer 1.0  // [Add] Explicit import
 
 Item {
     id: root
@@ -20,14 +21,12 @@ Item {
 
             Button {
                 id: shuffle
-                enabled: fileList.filteredFiles.length>0
+                enabled: audioPlayer.filePaths.length > 0  // [Fix] Use audioPlayer.filePaths
                 text: "Shuffle"
                 onClicked: {
-                    if (fileList.filteredFiles.length > 0) {
-                        let randomFilteredIndex = Math.floor(Math.random() * fileList.filteredFiles.length);
-                        let randomFilePath = fileList.filteredFiles[randomFilteredIndex];
-                        let originalIndex = audioPlayer.filePaths.indexOf(randomFilePath);
-                        audioPlayer.setCurId(originalIndex);
+                    if (audioPlayer.filePaths.length > 0) {
+                        let randomIndex = Math.floor(Math.random() * audioPlayer.filePaths.length);
+                        audioPlayer.setCurId(randomIndex);
                         audioPlayer.togglePlayPause();
                     }
                 }
@@ -36,9 +35,9 @@ Item {
             Button {
                 id: prev
                 text: "Previous"
-                enabled: audioPlayer.curId>0 && fileList.filteredFiles.length>0
+                enabled: audioPlayer.curId > 0 && audioPlayer.filePaths.length > 0
                 onClicked: {
-                    audioPlayer.curId--
+                    audioPlayer.setCurId(audioPlayer.curId - 1);
                     if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause();
                 }
             }
@@ -46,16 +45,16 @@ Item {
             Button {
                 id: playPause
                 text: audioPlayer.isPlaying ? "Pause" : "Play"
-                enabled: fileList.filteredFiles.length>0
-                onClicked: audioPlayer.togglePlayPause();
+                enabled: audioPlayer.filePaths.length > 0
+                onClicked: audioPlayer.togglePlayPause()
             }
 
             Button {
                 id: next
                 text: "Next"
-                enabled: audioPlayer.curId < fileList.filteredFiles.length-1
+                enabled: audioPlayer.curId < audioPlayer.filePaths.length - 1
                 onClicked: {
-                    audioPlayer.curId++
+                    audioPlayer.setCurId(audioPlayer.curId + 1);
                     if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause();
                 }
             }
@@ -68,7 +67,7 @@ Item {
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 20
             from: 0
-            to: audioPlayer.fileDurations[audioPlayer.curId]
+            to: audioPlayer.curId >= 0 ? audioPlayer.fileDurations[audioPlayer.curId] : 0
             value: audioPlayer.position >= 0 ? audioPlayer.position : 0
             onMoved: audioPlayer.setPosition(value)
 
@@ -82,8 +81,7 @@ Item {
 
             Text {
                 id: totalTime
-                text: audioPlayer.curId >= 0 ?
-                          formatTime(audioPlayer.fileDurations[audioPlayer.curId]) : "0:00"
+                text: audioPlayer.curId >= 0 ? formatTime(audioPlayer.fileDurations[audioPlayer.curId]) : "0:00"
                 anchors.left: progressSlider.right
                 anchors.leftMargin: 10
                 anchors.verticalCenter: progressSlider.verticalCenter
@@ -104,13 +102,12 @@ Item {
 
         Connections {
             target: audioPlayer
-            function onPlayingStateChanged()
-            {
+            function onPlayingStateChanged() {
                 if (!audioPlayer.isPlaying &&
-                        audioPlayer.position >= audioPlayer.fileDurations[audioPlayer.curId] - 100 &&
-                        audioPlayer.curId < audioPlayer.filePaths.length - 1) {
-                    audioPlayer.setCurId(audioPlayer.curId+1)
-                    audioPlayer.togglePlayPause()
+                    audioPlayer.position >= audioPlayer.fileDurations[audioPlayer.curId] - 100 &&
+                    audioPlayer.curId < audioPlayer.filePaths.length - 1) {
+                    audioPlayer.setCurId(audioPlayer.curId + 1);
+                    audioPlayer.togglePlayPause();
                 }
             }
         }

@@ -11,6 +11,7 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), curId(-1)
     connect(player, &QMediaPlayer::positionChanged, this, &AudioPlayer::positionChanged);
 
     loadLastFiles();
+    loadFavourites();
 }
 
 void AudioPlayer::setFiles(const QStringList& fileUrls)
@@ -108,4 +109,34 @@ QStringList AudioPlayer::getLastFilePaths()
     QStringList lastFiles = settings.value("lastFiles", QStringList()).toStringList();
     qDebug() << "Retrieved file paths from QSettings:" << lastFiles;
     return lastFiles;
+}
+
+void AudioPlayer::toggleFavourite(const QString& filePath)
+{
+    if (favourites.contains(filePath)) {
+        favourites.removeAll(filePath);
+        qDebug() << "Removed from favourites:" << filePath;
+    }
+
+    else {
+        favourites.append(filePath);
+        qDebug() << "Added to favourites:" << filePath;
+    }
+
+    saveFavourites();
+    emit favouritesChanged();
+}
+
+void AudioPlayer::saveFavourites()
+{
+    QSettings settings("YourName", "MusicPlayer");
+    settings.setValue("favourites", favourites);
+    qDebug() << "Saved favourites to QSettings:" << favourites;
+}
+
+void AudioPlayer::loadFavourites()
+{
+    QSettings settings("YourName", "MusicPlayer");
+    favourites = settings.value("favourites", QStringList()).toStringList();
+    qDebug() << "Loaded favourites from QSettings:" << favourites;
 }

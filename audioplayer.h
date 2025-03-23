@@ -18,6 +18,7 @@ class AudioPlayer: public QObject
     QAudioOutput *audioOutput;
     QStringList filePaths;
     QList<int> fileDurations;
+    QStringList favourites;
     int curId;
 
     Q_PROPERTY(QStringList filePaths READ getFilePaths NOTIFY filePathsChanged)
@@ -26,6 +27,7 @@ class AudioPlayer: public QObject
     Q_PROPERTY(float volume READ getVolume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool isPlaying READ isPlaying NOTIFY playingStateChanged)
     Q_PROPERTY(int curId READ getCurId WRITE setCurId NOTIFY curIdChanged)
+    Q_PROPERTY(QStringList favourites READ getFavourites NOTIFY favouritesChanged)
 
 public:
     explicit AudioPlayer(QObject *parent = nullptr);
@@ -36,6 +38,7 @@ public:
     float getVolume() { return audioOutput->volume(); }
     bool isPlaying() { return player->playbackState() == QMediaPlayer::PlayingState; }
     int getCurId() { return curId; }
+    QStringList getFavourites() { return favourites; }
 
 public slots:
     void setFiles(const QStringList&);
@@ -43,7 +46,8 @@ public slots:
     void togglePlayPause();
     void setPosition(int);
     void setVolume(float);
-    void loadLastFiles();  // [Change] Load last file paths on startup
+    void loadLastFiles();
+    void toggleFavourite(const QString&);
 
 signals:
     void filePathsChanged();
@@ -52,10 +56,13 @@ signals:
     void volumeChanged();
     void playingStateChanged();
     void curIdChanged();
+    void favouritesChanged();
 
 private:
-    void saveFilePaths(const QStringList &filePaths);  // [Change] Save file paths
-    QStringList getLastFilePaths();  // [Change] Retrieve file paths
+    void saveFilePaths(const QStringList &filePaths);
+    QStringList getLastFilePaths();
+    void saveFavourites();
+    void loadFavourites();
 };
 
 #endif
