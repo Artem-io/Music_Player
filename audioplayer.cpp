@@ -10,7 +10,7 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), curId(-1)
     connect(player, &QMediaPlayer::playbackStateChanged, this, &AudioPlayer::playingStateChanged);
     connect(player, &QMediaPlayer::positionChanged, this, &AudioPlayer::positionChanged);
 
-
+    loadLastFiles();
 }
 
 void AudioPlayer::setFiles(const QStringList& fileUrls)
@@ -18,41 +18,46 @@ void AudioPlayer::setFiles(const QStringList& fileUrls)
     filePaths.clear();
     fileDurations.clear();
 
-    for (const QString& url: fileUrls) {
-        QString localFile = QUrl(url).toLocalFile();
+    for (const QString &url : fileUrls) {
+        QString localFile;
+        if (url.startsWith("file://")) {
+            // Input is a URL (e.g., from FileDialog)
+            localFile = QUrl(url).toLocalFile();
+        } else {
+            // Input is already a local path (e.g., from QSettings)
+            localFile = url;
+        }
 
-        if (!localFile.isEmpty()) {
+        if (!localFile.isEmpty() && QFileInfo(localFile).exists()) {  // [Add] Check file existence
             filePaths.append(localFile);
             player->setSource(QUrl::fromLocalFile(localFile));
-
             while (player->mediaStatus() != QMediaPlayer::LoadedMedia &&
-                   player->mediaStatus() != QMediaPlayer::InvalidMedia)
+                   player->mediaStatus() != QMediaPlayer::InvalidMedia) {
                 QCoreApplication::processEvents();
-
+            }
             fileDurations.append(player->duration());
+            //qDebug() << "Added file:" << localFile << "Duration:" << player->duration();
         }
+        else qDebug() << "Skipped invalid or missing file:" << url;
     }
 
     if (!filePaths.isEmpty()) {
         curId = 0;
         player->setSource(QUrl::fromLocalFile(filePaths[curId]));
+        saveFilePaths(filePaths);  // Save the processed local paths
         emit filePathsChanged();
         emit fileDurationsChanged();
         emit curIdChanged();
     }
-
     else {
         curId = -1;
         emit filePathsChanged();
         emit fileDurationsChanged();
         emit curIdChanged();
     }
-
-    savePaths(fileUrls);
 }
 
-void AudioPlayer::setCurId(int id)
-{
+void AudioPlayer::setCurId(int id) {
     if (curId != id) {
         curId = id;
         if (curId >= 0 && curId < filePaths.size()) {
@@ -81,26 +86,26 @@ void AudioPlayer::setVolume(float vol)
     emit volumeChanged();
 }
 
-void AudioPlayer::savePaths(const QStringList &)
+void AudioPlayer::loadLastFiles()
 {
-
+    QStringList lastFiles = getLastFilePaths();
+    qDebug() << "Loading last files from QSettings:" << lastFiles;
+    if (!lastFiles.isEmpty()) {
+        setFiles(lastFiles);
+    }
 }
 
+void AudioPlayer::saveFilePaths(const QStringList &filePaths)
+{
+    QSettings settings("YourName", "MusicPlayer");
+    settings.setValue("lastFiles", filePaths);
+    qDebug() << "Saved file paths to QSettings:" << filePaths;
+}
 
-
-// void AudioPlayer::loadFilesFromFolder(const QString& folderPath)
-// {
-//     QDir dir(folderPath);
-//     if (!dir.exists()) return;
-
-//     QStringList musicFiles = dir.entryList(QStringList() << "*.mp3" << "*.m4a" << "*.wav" << "*.aac" << "*.opus", QDir::Files);
-//     if (musicFiles.isEmpty()) return;
-
-//     QStringList fullPaths;
-//     for (const QString &file : musicFiles) {
-//         fullPaths.append(dir.absoluteFilePath(file));
-//     }
-
-//     setFiles(fullPaths);
-//     //saveFolderPath(folderPath);
-// }
+QStringList AudioPlayer::getLastFilePaths()
+{
+    QSettings settings("YourName", "MusicPlayer");
+    QStringList lastFiles = settings.value("lastFiles", QStringList()).toStringList();
+    qDebug() << "Retrieved file paths from QSettings:" << lastFiles;
+    return lastFiles;
+}

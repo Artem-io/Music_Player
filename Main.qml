@@ -25,15 +25,12 @@ Window {
 
     FileDialog {
         id: fileDialog
-        nameFilters: ["MP3 Files (*.mp3 *.m4a *.wav *.aac *.opus)"]
+        nameFilters: ["Audio Files (*.mp3 *.m4a *.wav *.aac *.opus)"]
         fileMode: FileDialog.OpenFiles
-        onAccepted: audioPlayer.setFiles(fileDialog.selectedFiles);
+        onAccepted: {
+            audioPlayer.setFiles(fileDialog.selectedFiles);
+        }
     }
-
-    // FolderDialog {
-    //     id: folderDialog
-    //     onAccepted: audioPlayer.loadFilesFromFolder(folderDialog.selectedFolder.toString())
-    // }
 
     Button {
         id: addFilesButton

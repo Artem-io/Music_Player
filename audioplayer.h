@@ -43,7 +43,7 @@ public slots:
     void togglePlayPause();
     void setPosition(int);
     void setVolume(float);
-    void loadFilesFromFolder(const QString&);
+    void loadLastFiles();  // [Change] Load last file paths on startup
 
 signals:
     void filePathsChanged();
@@ -54,8 +54,8 @@ signals:
     void curIdChanged();
 
 private:
-    void savePaths(const QStringList&);
-    QStringList getLastFolderPath();
+    void saveFilePaths(const QStringList &filePaths);  // [Change] Save file paths
+    QStringList getLastFilePaths();  // [Change] Retrieve file paths
 };
 
 #endif
