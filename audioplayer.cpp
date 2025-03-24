@@ -21,15 +21,10 @@ void AudioPlayer::setFiles(const QStringList& fileUrls)
 
     for (const QString &url : fileUrls) {
         QString localFile;
-        if (url.startsWith("file://")) {
-            // Input is a URL (e.g., from FileDialog)
-            localFile = QUrl(url).toLocalFile();
-        } else {
-            // Input is already a local path (e.g., from QSettings)
-            localFile = url;
-        }
+        if (url.startsWith("file://")) localFile = QUrl(url).toLocalFile();
+        else localFile = url;
 
-        if (!localFile.isEmpty() && QFileInfo(localFile).exists()) {  // [Add] Check file existence
+        if (!localFile.isEmpty() && QFileInfo(localFile).exists()) {
             filePaths.append(localFile);
             player->setSource(QUrl::fromLocalFile(localFile));
             while (player->mediaStatus() != QMediaPlayer::LoadedMedia &&
@@ -45,7 +40,7 @@ void AudioPlayer::setFiles(const QStringList& fileUrls)
     if (!filePaths.isEmpty()) {
         curId = 0;
         player->setSource(QUrl::fromLocalFile(filePaths[curId]));
-        saveFilePaths(filePaths);  // Save the processed local paths
+        saveFilePaths(filePaths);
         emit filePathsChanged();
         emit fileDurationsChanged();
         emit curIdChanged();
@@ -90,38 +85,26 @@ void AudioPlayer::setVolume(float vol)
 void AudioPlayer::loadLastFiles()
 {
     QStringList lastFiles = getLastFilePaths();
-    qDebug() << "Loading last files from QSettings:" << lastFiles;
-    if (!lastFiles.isEmpty()) {
-        setFiles(lastFiles);
-    }
+    if (!lastFiles.isEmpty()) setFiles(lastFiles);
 }
 
 void AudioPlayer::saveFilePaths(const QStringList &filePaths)
 {
     QSettings settings("YourName", "MusicPlayer");
     settings.setValue("lastFiles", filePaths);
-    qDebug() << "Saved file paths to QSettings:" << filePaths;
 }
 
 QStringList AudioPlayer::getLastFilePaths()
 {
     QSettings settings("YourName", "MusicPlayer");
     QStringList lastFiles = settings.value("lastFiles", QStringList()).toStringList();
-    qDebug() << "Retrieved file paths from QSettings:" << lastFiles;
     return lastFiles;
 }
 
 void AudioPlayer::toggleFavourite(const QString& filePath)
 {
-    if (favourites.contains(filePath)) {
-        favourites.removeAll(filePath);
-        qDebug() << "Removed from favourites:" << filePath;
-    }
-
-    else {
-        favourites.append(filePath);
-        qDebug() << "Added to favourites:" << filePath;
-    }
+    if (favourites.contains(filePath)) favourites.removeAll(filePath);
+    else favourites.append(filePath);
 
     saveFavourites();
     emit favouritesChanged();
@@ -131,12 +114,10 @@ void AudioPlayer::saveFavourites()
 {
     QSettings settings("YourName", "MusicPlayer");
     settings.setValue("favourites", favourites);
-    qDebug() << "Saved favourites to QSettings:" << favourites;
 }
 
 void AudioPlayer::loadFavourites()
 {
     QSettings settings("YourName", "MusicPlayer");
     favourites = settings.value("favourites", QStringList()).toStringList();
-    qDebug() << "Loaded favourites from QSettings:" << favourites;
 }

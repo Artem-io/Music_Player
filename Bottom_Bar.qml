@@ -1,12 +1,24 @@
 import QtQuick
 import QtQuick.Controls
-import AudioPlayer 1.0  // [Add] Explicit import
+import AudioPlayer 1.0
 
 Item {
     id: root
     width: parent.width
-    height: Math.min(100, parent.height * 0.15)
+    height: 100
     anchors.bottom: parent.bottom
+
+    property string currentTab: "Library"
+    property var activeFilteredFiles: []
+
+    Connections {
+        target: contentLoader.item
+        function onFilteredFilesChanged() {
+            if (contentLoader.item && "filteredFiles" in contentLoader.item) {
+                activeFilteredFiles = contentLoader.item.filteredFiles;
+            }
+        }
+    }
 
     Rectangle {
         id: bottomBar
@@ -21,12 +33,15 @@ Item {
 
             Button {
                 id: shuffle
-                enabled: audioPlayer.filePaths.length > 0  // [Fix] Use audioPlayer.filePaths
+                enabled: activeFilteredFiles.length > 0 || (currentTab === "Favourites" ? audioPlayer.favourites.length > 0 : audioPlayer.filePaths.length > 0)
                 text: "Shuffle"
                 onClicked: {
-                    if (audioPlayer.filePaths.length > 0) {
-                        let randomIndex = Math.floor(Math.random() * audioPlayer.filePaths.length);
-                        audioPlayer.setCurId(randomIndex);
+                    let songList = activeFilteredFiles.length > 0 ? activeFilteredFiles : (currentTab === "Favourites" ? audioPlayer.favourites : audioPlayer.filePaths);
+                    if (songList.length > 0) {
+                        let randomIndex = Math.floor(Math.random() * songList.length);
+                        let randomFilePath = songList[randomIndex];
+                        let originalIndex = audioPlayer.filePaths.indexOf(randomFilePath);
+                        audioPlayer.setCurId(originalIndex);
                         audioPlayer.togglePlayPause();
                     }
                 }
@@ -35,9 +50,19 @@ Item {
             Button {
                 id: prev
                 text: "Previous"
-                enabled: audioPlayer.curId > 0 && audioPlayer.filePaths.length > 0
+                enabled: {
+                    let songList = activeFilteredFiles.length > 0 ? activeFilteredFiles : (currentTab === "Favourites" ? audioPlayer.favourites : audioPlayer.filePaths);
+                    let currentIndex = songList.indexOf(audioPlayer.filePaths[audioPlayer.curId]);
+                    return currentIndex > 0 && songList.length > 0;
+                }
                 onClicked: {
-                    audioPlayer.setCurId(audioPlayer.curId - 1);
+                    let songList = activeFilteredFiles.length > 0 ? activeFilteredFiles : (currentTab === "Favourites" ? audioPlayer.favourites : audioPlayer.filePaths);
+                    let currentIndex = songList.indexOf(audioPlayer.filePaths[audioPlayer.curId]);
+                    if (currentIndex > 0) {
+                        let newIndex = currentIndex - 1;
+                        let newFilePath = songList[newIndex];
+                        audioPlayer.setCurId(audioPlayer.filePaths.indexOf(newFilePath));
+                    }
                     if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause();
                 }
             }
@@ -52,9 +77,19 @@ Item {
             Button {
                 id: next
                 text: "Next"
-                enabled: audioPlayer.curId < audioPlayer.filePaths.length - 1
+                enabled: {
+                    let songList = activeFilteredFiles.length > 0 ? activeFilteredFiles : (currentTab === "Favourites" ? audioPlayer.favourites : audioPlayer.filePaths);
+                    let currentIndex = songList.indexOf(audioPlayer.filePaths[audioPlayer.curId]);
+                    return currentIndex < songList.length - 1 && songList.length > 0;
+                }
                 onClicked: {
-                    audioPlayer.setCurId(audioPlayer.curId + 1);
+                    let songList = activeFilteredFiles.length > 0 ? activeFilteredFiles : (currentTab === "Favourites" ? audioPlayer.favourites : audioPlayer.filePaths);
+                    let currentIndex = songList.indexOf(audioPlayer.filePaths[audioPlayer.curId]);
+                    if (currentIndex < songList.length - 1) {
+                        let newIndex = currentIndex + 1;
+                        let newFilePath = songList[newIndex];
+                        audioPlayer.setCurId(audioPlayer.filePaths.indexOf(newFilePath));
+                    }
                     if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause();
                 }
             }
@@ -104,10 +139,15 @@ Item {
             target: audioPlayer
             function onPlayingStateChanged() {
                 if (!audioPlayer.isPlaying &&
-                    audioPlayer.position >= audioPlayer.fileDurations[audioPlayer.curId] - 100 &&
-                    audioPlayer.curId < audioPlayer.filePaths.length - 1) {
-                    audioPlayer.setCurId(audioPlayer.curId + 1);
-                    audioPlayer.togglePlayPause();
+                    audioPlayer.position >= audioPlayer.fileDurations[audioPlayer.curId] - 100) {
+                    let songList = activeFilteredFiles.length > 0 ? activeFilteredFiles : (currentTab === "Favourites" ? audioPlayer.favourites : audioPlayer.filePaths);
+                    let currentIndex = songList.indexOf(audioPlayer.filePaths[audioPlayer.curId]);
+                    if (currentIndex < songList.length - 1) {
+                        let newIndex = currentIndex + 1;
+                        let newFilePath = songList[newIndex];
+                        audioPlayer.setCurId(audioPlayer.filePaths.indexOf(newFilePath));
+                        audioPlayer.togglePlayPause();
+                    }
                 }
             }
         }
