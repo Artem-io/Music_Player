@@ -20,22 +20,14 @@ Window {
 
     Loader {
         anchors.centerIn: parent
-
         id: contentLoader
         sourceComponent: {
             switch (sideBar.selectedTab) {
             case "Library": return libraryComponent;
             case "Favourites": return likedComponent;
+            case "Playlists": return playlistComponent;
             case "Settings": return settings;
             default: return libraryComponent;
-            }
-        }
-        // [Add] Pass filteredFiles to Bottom_Bar when loaded
-        onLoaded: {
-            if (item && "filteredFiles" in item) {
-                bottomBar.activeFilteredFiles = item.filteredFiles;
-            } else {
-                bottomBar.activeFilteredFiles = [];
             }
         }
     }
@@ -45,6 +37,8 @@ Window {
         File_List {
             id: library
             anchors.centerIn: parent
+            Component.onCompleted: audioPlayer.setCurSongList(filteredFiles)
+            onFilteredFilesChanged: audioPlayer.setCurSongList(filteredFiles)
         }
     }
 
@@ -62,6 +56,15 @@ Window {
                     });
                 }
             }
+            Component.onCompleted: audioPlayer.setCurSongList(filteredFiles)
+            onFilteredFilesChanged: audioPlayer.setCurSongList(filteredFiles)
+        }
+    }
+
+    Component {
+        id: playlistComponent
+        PlaylistView {
+            anchors.centerIn: parent
         }
     }
 
@@ -80,8 +83,6 @@ Window {
         id: bottomBar
         anchors.bottom: parent.bottom
         width: parent.width
-        currentTab: sideBar.selectedTab
-        // [Add] Property binding will be set by Loader
     }
 
     FileDialog {

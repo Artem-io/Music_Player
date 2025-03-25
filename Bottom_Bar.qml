@@ -8,18 +8,6 @@ Item {
     height: 100
     anchors.bottom: parent.bottom
 
-    property string currentTab: "Library"
-    property var activeFilteredFiles: []
-
-    Connections {
-        target: contentLoader.item
-        function onFilteredFilesChanged() {
-            if (contentLoader.item && "filteredFiles" in contentLoader.item) {
-                activeFilteredFiles = contentLoader.item.filteredFiles;
-            }
-        }
-    }
-
     Rectangle {
         id: bottomBar
         anchors.fill: parent
@@ -33,36 +21,23 @@ Item {
 
             Button {
                 id: shuffle
-                enabled: activeFilteredFiles.length > 0 || (currentTab === "Favourites" ? audioPlayer.favourites.length > 0 : audioPlayer.filePaths.length > 0)
+                enabled: audioPlayer.curSongList.length > 1
                 text: "Shuffle"
                 onClicked: {
-                    let songList = activeFilteredFiles.length > 0 ? activeFilteredFiles : (currentTab === "Favourites" ? audioPlayer.favourites : audioPlayer.filePaths);
-                    if (songList.length > 0) {
-                        let randomIndex = Math.floor(Math.random() * songList.length);
-                        let randomFilePath = songList[randomIndex];
-                        let originalIndex = audioPlayer.filePaths.indexOf(randomFilePath);
-                        audioPlayer.setCurId(originalIndex);
-                        audioPlayer.togglePlayPause();
-                    }
+                    let randomIndex;
+                    do randomIndex = Math.floor(Math.random() * audioPlayer.curSongList.length);
+                    while (randomIndex === audioPlayer.curId)
+                    audioPlayer.setCurId(randomIndex);
+                    audioPlayer.togglePlayPause();
                 }
             }
 
             Button {
                 id: prev
                 text: "Previous"
-                enabled: {
-                    let songList = activeFilteredFiles.length > 0 ? activeFilteredFiles : (currentTab === "Favourites" ? audioPlayer.favourites : audioPlayer.filePaths);
-                    let currentIndex = songList.indexOf(audioPlayer.filePaths[audioPlayer.curId]);
-                    return currentIndex > 0 && songList.length > 0;
-                }
+                enabled: audioPlayer.curId > 0
                 onClicked: {
-                    let songList = activeFilteredFiles.length > 0 ? activeFilteredFiles : (currentTab === "Favourites" ? audioPlayer.favourites : audioPlayer.filePaths);
-                    let currentIndex = songList.indexOf(audioPlayer.filePaths[audioPlayer.curId]);
-                    if (currentIndex > 0) {
-                        let newIndex = currentIndex - 1;
-                        let newFilePath = songList[newIndex];
-                        audioPlayer.setCurId(audioPlayer.filePaths.indexOf(newFilePath));
-                    }
+                    audioPlayer.setCurId(audioPlayer.curId - 1);
                     if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause();
                 }
             }
@@ -70,26 +45,17 @@ Item {
             Button {
                 id: playPause
                 text: audioPlayer.isPlaying ? "Pause" : "Play"
-                enabled: audioPlayer.filePaths.length > 0
+                enabled: audioPlayer.curSongList.length > 0
                 onClicked: audioPlayer.togglePlayPause()
             }
 
             Button {
                 id: next
                 text: "Next"
-                enabled: {
-                    let songList = activeFilteredFiles.length > 0 ? activeFilteredFiles : (currentTab === "Favourites" ? audioPlayer.favourites : audioPlayer.filePaths);
-                    let currentIndex = songList.indexOf(audioPlayer.filePaths[audioPlayer.curId]);
-                    return currentIndex < songList.length - 1 && songList.length > 0;
-                }
+                enabled: audioPlayer.curId < audioPlayer.curSongList.length - 1 &&
+                         audioPlayer.curSongList.length > 0
                 onClicked: {
-                    let songList = activeFilteredFiles.length > 0 ? activeFilteredFiles : (currentTab === "Favourites" ? audioPlayer.favourites : audioPlayer.filePaths);
-                    let currentIndex = songList.indexOf(audioPlayer.filePaths[audioPlayer.curId]);
-                    if (currentIndex < songList.length - 1) {
-                        let newIndex = currentIndex + 1;
-                        let newFilePath = songList[newIndex];
-                        audioPlayer.setCurId(audioPlayer.filePaths.indexOf(newFilePath));
-                    }
+                    audioPlayer.setCurId(audioPlayer.curId + 1);
                     if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause();
                 }
             }
@@ -102,7 +68,8 @@ Item {
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 20
             from: 0
-            to: audioPlayer.curId >= 0 ? audioPlayer.fileDurations[audioPlayer.curId] : 0
+            to: audioPlayer.curId >= 0 ?
+                    audioPlayer.fileDurations[audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])] : 0
             value: audioPlayer.position >= 0 ? audioPlayer.position : 0
             onMoved: audioPlayer.setPosition(value)
 
@@ -116,7 +83,8 @@ Item {
 
             Text {
                 id: totalTime
-                text: audioPlayer.curId >= 0 ? formatTime(audioPlayer.fileDurations[audioPlayer.curId]) : "0:00"
+                text: audioPlayer.curId >= 0 ?
+                          formatTime(audioPlayer.fileDurations[audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])]) : "0:00"
                 anchors.left: progressSlider.right
                 anchors.leftMargin: 10
                 anchors.verticalCenter: progressSlider.verticalCenter
@@ -138,14 +106,10 @@ Item {
         Connections {
             target: audioPlayer
             function onPlayingStateChanged() {
-                if (!audioPlayer.isPlaying &&
-                    audioPlayer.position >= audioPlayer.fileDurations[audioPlayer.curId] - 100) {
-                    let songList = activeFilteredFiles.length > 0 ? activeFilteredFiles : (currentTab === "Favourites" ? audioPlayer.favourites : audioPlayer.filePaths);
-                    let currentIndex = songList.indexOf(audioPlayer.filePaths[audioPlayer.curId]);
-                    if (currentIndex < songList.length - 1) {
-                        let newIndex = currentIndex + 1;
-                        let newFilePath = songList[newIndex];
-                        audioPlayer.setCurId(audioPlayer.filePaths.indexOf(newFilePath));
+                if (!audioPlayer.isPlaying && audioPlayer.curSongList.length > 0 &&
+                        audioPlayer.position >= audioPlayer.fileDurations[audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])] - 100) {
+                    if (audioPlayer.curId < audioPlayer.curSongList.length - 1) {
+                        audioPlayer.setCurId(audioPlayer.curId + 1);
                         audioPlayer.togglePlayPause();
                     }
                 }

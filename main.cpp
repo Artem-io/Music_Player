@@ -6,6 +6,8 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+    QCoreApplication::setOrganizationName("Artemio");
+    QCoreApplication::setApplicationName("MusicPlayer");
 
     qmlRegisterType<AudioPlayer>("AudioPlayer", 1, 0, "AudioPlayer");
 

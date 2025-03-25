@@ -19,6 +19,8 @@ class AudioPlayer: public QObject
     QStringList filePaths;
     QList<int> fileDurations;
     QStringList favourites;
+    QVariantMap playlists;
+    QStringList curSongList;
     int curId;
 
     Q_PROPERTY(QStringList filePaths READ getFilePaths NOTIFY filePathsChanged)
@@ -28,6 +30,8 @@ class AudioPlayer: public QObject
     Q_PROPERTY(bool isPlaying READ isPlaying NOTIFY playingStateChanged)
     Q_PROPERTY(int curId READ getCurId WRITE setCurId NOTIFY curIdChanged)
     Q_PROPERTY(QStringList favourites READ getFavourites NOTIFY favouritesChanged)
+    Q_PROPERTY(QVariantMap playlists READ getPlaylists NOTIFY playlistsChanged) // New property
+    Q_PROPERTY(QStringList curSongList READ getCurSongList WRITE setCurSongList NOTIFY curSongListChanged)
 
 public:
     explicit AudioPlayer(QObject *parent = nullptr);
@@ -39,6 +43,8 @@ public:
     bool isPlaying() { return player->playbackState() == QMediaPlayer::PlayingState; }
     int getCurId() { return curId; }
     QStringList getFavourites() { return favourites; }
+    QVariantMap getPlaylists() { return playlists; }
+    QStringList getCurSongList() { return curSongList; }
 
 public slots:
     void setFiles(const QStringList&);
@@ -48,6 +54,10 @@ public slots:
     void setVolume(float);
     void loadLastFiles();
     void toggleFavourite(const QString&);
+    // New playlist slots
+    void addPlaylist(const QString&, const QStringList&);
+    void removePlaylist(const QString&);
+    void setCurSongList(const QStringList&); // New setter
 
 signals:
     void filePathsChanged();
@@ -57,12 +67,16 @@ signals:
     void playingStateChanged();
     void curIdChanged();
     void favouritesChanged();
+    void playlistsChanged();
+    void curSongListChanged(); // New signal
 
 private:
-    void saveFilePaths(const QStringList &filePaths);
+    void saveFilePaths(const QStringList&);
     QStringList getLastFilePaths();
     void saveFavourites();
     void loadFavourites();
+    void savePlaylists(); // New
+    void loadPlaylists(); // New
 };
 
 #endif

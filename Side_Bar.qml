@@ -25,7 +25,7 @@ Item {
             spacing: 10
 
             Repeater {
-                model: ["Library", "Favourites", "Settings"]
+                model: ["Library", "Favourites", "Playlists", "Settings"] // Added Playlists
 
                 Button {
                     width: parent.width
@@ -33,13 +33,11 @@ Item {
                     text: modelData
                     flat: true
                     font.pixelSize: 16
-                    // Use palette for color instead of contentItem
                     palette.buttonText: root.selectedTab === modelData ? "white" : "#cccccc"
-                    // Use Rectangle as an overlay instead of background
                     Rectangle {
                         anchors.fill: parent
                         color: root.selectedTab === modelData ? "#555555" : "transparent"
-                        z: -1  // Behind the button text
+                        z: -1
                     }
                     onClicked: root.selectedTab = modelData
                 }

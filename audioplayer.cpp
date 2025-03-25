@@ -12,6 +12,8 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), curId(-1)
 
     loadLastFiles();
     loadFavourites();
+    loadPlaylists(); // new
+    curSongList=filePaths; // whole library by default
 }
 
 void AudioPlayer::setFiles(const QStringList& fileUrls)
@@ -39,27 +41,42 @@ void AudioPlayer::setFiles(const QStringList& fileUrls)
 
     if (!filePaths.isEmpty()) {
         curId = 0;
+        curSongList = filePaths; // Reset to full library when new files are loaded
         player->setSource(QUrl::fromLocalFile(filePaths[curId]));
         saveFilePaths(filePaths);
         emit filePathsChanged();
         emit fileDurationsChanged();
         emit curIdChanged();
+        emit curSongListChanged();
     }
     else {
         curId = -1;
+        curSongList.clear();
         emit filePathsChanged();
         emit fileDurationsChanged();
+        emit curIdChanged();
+        emit curSongListChanged();
+    }
+}
+
+void AudioPlayer::setCurId(int id)
+{
+    if (curId != id && id >= 0 && id < curSongList.size()) {  // Check against currentPlaylist
+        curId = id;
+        player->setSource(QUrl::fromLocalFile(curSongList[curId]));
         emit curIdChanged();
     }
 }
 
-void AudioPlayer::setCurId(int id) {
-    if (curId != id) {
-        curId = id;
-        if (curId >= 0 && curId < filePaths.size()) {
-            player->setSource(QUrl::fromLocalFile(filePaths[curId]));
-            emit curIdChanged();
+void AudioPlayer::setCurSongList(const QStringList& playlist)
+{
+    if (curSongList != playlist) {
+        curSongList = playlist;
+        curId = -1; // Reset current ID
+        if (!curSongList.isEmpty()) {
+            setCurId(0); // Start with first song
         }
+        emit curSongListChanged();
     }
 }
 
@@ -90,13 +107,13 @@ void AudioPlayer::loadLastFiles()
 
 void AudioPlayer::saveFilePaths(const QStringList &filePaths)
 {
-    QSettings settings("YourName", "MusicPlayer");
+    QSettings settings;
     settings.setValue("lastFiles", filePaths);
 }
 
 QStringList AudioPlayer::getLastFilePaths()
 {
-    QSettings settings("YourName", "MusicPlayer");
+    QSettings settings;
     QStringList lastFiles = settings.value("lastFiles", QStringList()).toStringList();
     return lastFiles;
 }
@@ -112,12 +129,48 @@ void AudioPlayer::toggleFavourite(const QString& filePath)
 
 void AudioPlayer::saveFavourites()
 {
-    QSettings settings("YourName", "MusicPlayer");
+    QSettings settings;
     settings.setValue("favourites", favourites);
 }
 
 void AudioPlayer::loadFavourites()
 {
-    QSettings settings("YourName", "MusicPlayer");
+    QSettings settings;
     favourites = settings.value("favourites", QStringList()).toStringList();
+}
+
+void AudioPlayer::addPlaylist(const QString& name, const QStringList& files)
+{
+    playlists[name] = files; // Implicitly converts QStringList to QVariant
+    savePlaylists();
+    emit playlistsChanged();
+}
+
+void AudioPlayer::removePlaylist(const QString& name)
+{
+    playlists.remove(name);
+    savePlaylists();
+    emit playlistsChanged();
+}
+
+void AudioPlayer::savePlaylists()
+{
+    QSettings settings;
+    settings.beginGroup("playlists");
+    settings.remove("");
+    for (const QString& name : playlists.keys()) {
+        settings.setValue(name, playlists[name].toStringList()); // Extract QStringList from QVariant
+    }
+    settings.endGroup();
+}
+
+void AudioPlayer::loadPlaylists()
+{
+    QSettings settings;
+    settings.beginGroup("playlists");
+    QStringList playlistNames = settings.childKeys();
+    for (const QString& name : playlistNames) {
+        playlists[name] = settings.value(name).toStringList(); // Store as QVariant
+    }
+    settings.endGroup();
 }

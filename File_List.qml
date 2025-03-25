@@ -27,38 +27,36 @@ Item {
             width: parent.width
             height: 40
             placeholderText: "Search..."
-            onTextChanged: searchQuery = text
+            onTextChanged: {
+                searchQuery = text;
+                audioPlayer.setCurSongList(filteredFiles); // Update current playlist on search
+            }
         }
 
         ListView {
             id: fileList
-            anchors.top: searchField.bottom
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.right: parent.right
+            anchors {
+                top: searchField.bottom
+                bottom: parent.bottom
+                left: parent.left
+                right: parent.right
+            }
             model: filteredFiles
             clip: true
 
             delegate: Rectangle {
                 width: fileList.width
                 height: 40
-                color: audioPlayer.curId === audioPlayer.filePaths.indexOf(modelData) ? "lightblue" : "white"
+                color: audioPlayer.curSongList[audioPlayer.curId] === modelData ? "lightblue" : "white"
                 border.color: "gray"
 
                 Row {
                     anchors.centerIn: parent
                     spacing: 20
 
-                    Text { // Index
-                        text: index + 1
-                        width: 20
-                    }
-
-                    Text { // File Name
-                        text: {
-                            let filename = modelData.split('/').pop();
-                            return filename.substring(0, filename.lastIndexOf('.'));
-                        }
+                    Text { text: index + 1; width: 20 } // index
+                    Text { // song name
+                        text: modelData.split('/').pop().substring(0, modelData.split('/').pop().lastIndexOf('.'))
                         width: 200
                         elide: Text.ElideRight
                     }
@@ -71,7 +69,7 @@ Item {
                         onClicked: audioPlayer.toggleFavourite(modelData)
                     }
 
-                    Text { // Song Duration
+                    Text { // duration
                         text: {
                             let originalIndex = audioPlayer.filePaths.indexOf(modelData);
                             if (originalIndex >= 0 && originalIndex < audioPlayer.fileDurations.length) {
@@ -91,13 +89,11 @@ Item {
                     propagateComposedEvents: true
                     onPressed: {
                         if (!like.hovered) {
-                            let originalIndex = audioPlayer.filePaths.indexOf(modelData);
-                            audioPlayer.setCurId(originalIndex);
+                            audioPlayer.setCurId(filteredFiles.indexOf(modelData));
                             audioPlayer.togglePlayPause();
-                            mouse.accepted = true
-                        } else {
-                            mouse.accepted = false
+                            mouse.accepted = true;
                         }
+                        else mouse.accepted = false;
                     }
                 }
             }
