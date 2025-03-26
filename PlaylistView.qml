@@ -22,7 +22,7 @@ Item {
         }
     }
 
-    Column {
+    Column { // all playlists
         id: playlistListView
         anchors.fill: parent
         spacing: 10
@@ -30,7 +30,13 @@ Item {
 
         Button {
             text: "Add Playlist"
-            onClicked: playlistDialog.open()
+            onClicked: {
+                playlistName.text = ""
+                let newArr = new Array(audioPlayer.filePaths.length)
+                newArr.fill(false)
+                root.checkedStates = newArr
+                playlistDialog.open()
+            }
         }
 
         ListView {
@@ -56,6 +62,7 @@ Item {
                     }
 
                     Button {
+                        id: del
                         text: "Delete"
                         onClicked: audioPlayer.removePlaylist(modelData)
                     }
@@ -63,10 +70,15 @@ Item {
 
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: {
-                        playlistFilesView.files = audioPlayer.playlists[modelData];
-                        audioPlayer.setCurSongList(playlistFilesView.files); // Set when viewing
-                        playlistFilesView.visible = true;
+                    onPressed: {
+                        if (!del.hovered) {
+                            playlistFilesView.files = audioPlayer.playlists[modelData]
+                            audioPlayer.setCurSongList(playlistFilesView.filteredFiles)
+                            playlistFilesView.visible = true
+                            playlistFilesView.searchQuery = ""
+                            mouse.accepted = true
+                        }
+                        else mouse.accepted = false
                     }
                 }
             }
@@ -125,17 +137,28 @@ Item {
         visible: false
         anchors.fill: parent
         property var files: []
-        filteredFiles: files
+
+        filteredFiles: {
+            if (searchQuery === "") return files
+            else {
+                return files.filter(function(filePath) {
+                    let fileName = filePath.split('/').pop().toLowerCase()
+                    return fileName.includes(searchQuery.toLowerCase())
+                })
+            }
+        }
+        onFilteredFilesChanged: audioPlayer.setCurSongList(filteredFiles)
 
         Button {
             id: backButton
             text: "Back"
             anchors.top: parent.top
-            anchors.left: parent.left
+            anchors.right: parent.left
             anchors.margins: 10
             onClicked: {
-                playlistFilesView.visible = false;
-                audioPlayer.setCurSongList(audioPlayer.filePaths); // Reset to full library
+                playlistFilesView.visible = false
+                audioPlayer.setCurSongList(audioPlayer.filePaths)
+                playlistFilesView.searchQuery = ""
             }
         }
     }
