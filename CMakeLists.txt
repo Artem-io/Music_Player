@@ -16,23 +16,36 @@ qt_add_qml_module(appMusic_Player_2
     URI Music_Player_2
     VERSION 1.0
     QML_FILES
-        Main.qml
-        QML_FILES Bottom_Bar.qml
-        QML_FILES File_List.qml
-        SOURCES audioplayer.h audioplayer.cpp
-        QML_FILES Side_Bar.qml
-        QML_FILES PlaylistView.qml
+    Main.qml
+    QML_FILES Bottom_Bar.qml
+    QML_FILES File_List.qml
+    SOURCES audioplayer.h audioplayer.cpp
+    QML_FILES Side_Bar.qml
+    QML_FILES PlaylistView.qml
+    QML_FILES Image_Button.qml
+
+    RESOURCES
+    assets/icons/play.png
+    assets/icons/play_unavailable.png
+    assets/icons/pause.png
+    assets/icons/next_track.png
+    assets/icons/next_track_unavailable.png
+    assets/icons/shuffle.png
+    assets/icons/shuffle_unavailable.png
+    assets/icons/heart_filled.png
+    assets/icons/heart_empty.png
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
 set_target_properties(appMusic_Player_2 PROPERTIES
-#    MACOSX_BUNDLE_GUI_IDENTIFIER com.example.appMusic_Player_2
+    #    MACOSX_BUNDLE_GUI_IDENTIFIER com.example.appMusic_Player_2
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
+    #QT_QUICK_CONTROLS_STYLE "Material"
 )
 
 target_link_libraries(appMusic_Player_2

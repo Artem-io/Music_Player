@@ -1,14 +1,16 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Dialogs
+import QtQuick.Controls.Material
 import AudioPlayer 1.0
 
-Window {
+ApplicationWindow {
     width: 1920
     height: 1080
     visible: true
     visibility: Window.Maximized
     title: qsTr("Music Player")
+    color: "#262626"
 
     AudioPlayer {
         id: audioPlayer

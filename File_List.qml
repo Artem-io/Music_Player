@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Material
 import AudioPlayer 1.0
 
 Item {
@@ -29,7 +30,7 @@ Item {
             placeholderText: "Search..."
             onTextChanged: {
                 searchQuery = text;
-                audioPlayer.setCurSongList(filteredFiles); // Update current playlist on search
+                audioPlayer.setCurSongList(filteredFiles);
             }
         }
 
@@ -61,12 +62,12 @@ Item {
                         elide: Text.ElideRight
                     }
 
-                    Button {
+                    Image_Button {
                         id: like
-                        text: audioPlayer.favourites.includes(modelData) ? "★" : "☆"
                         width: 30
                         height: 30
                         onClicked: audioPlayer.toggleFavourite(modelData)
+                        image: audioPlayer.favourites.includes(modelData)? "assets/icons/heart_filled.png":"assets/icons/heart_empty.png"
                     }
 
                     Text { // duration
@@ -85,15 +86,12 @@ Item {
                 }
 
                 MouseArea {
-                    anchors.fill: parent
-                    propagateComposedEvents: true
-                    onPressed: {
-                        if (!like.hovered) {
-                            audioPlayer.setCurId(filteredFiles.indexOf(modelData));
-                            audioPlayer.togglePlayPause();
-                            mouse.accepted = true;
-                        }
-                        else mouse.accepted = false;
+                    width: parent.width - like.x
+                    height: parent.height
+
+                    onClicked: {
+                        audioPlayer.setCurId(filteredFiles.indexOf(modelData));
+                        audioPlayer.togglePlayPause();
                     }
                 }
             }

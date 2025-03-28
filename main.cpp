@@ -1,11 +1,13 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+//#include <QQuickStyle>
 
 #include "audioplayer.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+    //QQuickStyle::setStyle("Material");
     QCoreApplication::setOrganizationName("Artemio");
     QCoreApplication::setApplicationName("MusicPlayer");
 

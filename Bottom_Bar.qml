@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Material
 import AudioPlayer 1.0
 
 Item {
@@ -7,53 +8,58 @@ Item {
     width: parent.width
     height: 100
     anchors.bottom: parent.bottom
+    property color textColor: "white"
 
     Rectangle {
         id: bottomBar
         anchors.fill: parent
-        color: "lightgrey"
+        color: "#171717"
+        property int butWidth: 30
+        property int butHeight: 32
 
         Row {
+            id: row
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
-            anchors.topMargin: 20
-            spacing: 20
+            anchors.topMargin: 8
+            spacing: 30
 
-            Button {
-                id: shuffle
-                enabled: audioPlayer.curSongList.length > 1
-                text: "Shuffle"
-                onClicked: {
-                    let randomIndex;
-                    do randomIndex = Math.floor(Math.random() * audioPlayer.curSongList.length);
-                    while (randomIndex === audioPlayer.curId)
-                    audioPlayer.setCurId(randomIndex);
-                    audioPlayer.togglePlayPause();
-                }
-            }
-
-            Button {
+            Image_Button {
                 id: prev
-                text: "Previous"
                 enabled: audioPlayer.curId > 0
+                width: bottomBar.butWidth
+                height: bottomBar.butHeight
+                scale: -1
+
+                image: enabled? "assets/icons/next_track.png" : "assets/icons/next_track_unavailable.png"
                 onClicked: {
                     audioPlayer.setCurId(audioPlayer.curId - 1);
                     if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause();
                 }
             }
 
-            Button {
+            Image_Button {
                 id: playPause
-                text: audioPlayer.isPlaying ? "Pause" : "Play"
                 enabled: audioPlayer.curSongList.length > 0
+                width: bottomBar.butWidth
+                height: bottomBar.butHeight
+
+                image: {
+                    if(enabled) audioPlayer.isPlaying ? "assets/icons/pause.png" : "assets/icons/play.png"
+                    else "assets/icons/play_unavailable.png"
+                }
+
                 onClicked: audioPlayer.togglePlayPause()
             }
 
-            Button {
+            Image_Button {
                 id: next
-                text: "Next"
                 enabled: audioPlayer.curId < audioPlayer.curSongList.length - 1 &&
                          audioPlayer.curSongList.length > 0
+                width: bottomBar.butWidth
+                height: bottomBar.butHeight
+
+                image: enabled? "assets/icons/next_track.png" : "assets/icons/next_track_unavailable.png"
                 onClicked: {
                     audioPlayer.setCurId(audioPlayer.curId + 1);
                     if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause();
@@ -61,9 +67,25 @@ Item {
             }
         }
 
+        // Image_Button {
+        //     id: shuffle
+        //     enabled: audioPlayer.curSongList.length > 1
+        //     width: bottomBar.butWidth
+        //     height: bottomBar.butHeight
+        //     image: enabled? "assets/icons/shuffle.png" : "assets/icons/shuffle_unavailable.png"
+
+        //     onClicked: {
+        //         let randomIndex;
+        //         do randomIndex = Math.floor(Math.random() * audioPlayer.curSongList.length);
+        //         while (randomIndex === audioPlayer.curId)
+        //         audioPlayer.setCurId(randomIndex);
+        //         audioPlayer.togglePlayPause();
+        //     }
+        // }
+
         Slider {
             id: progressSlider
-            width: Math.min(550, parent.width * 0.5)
+            width: 550
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 20
@@ -73,8 +95,29 @@ Item {
             value: audioPlayer.position >= 0 ? audioPlayer.position : 0
             onMoved: audioPlayer.setPosition(value)
 
+            background: Rectangle {
+                x: progressSlider.leftPadding
+                y: progressSlider.topPadding + progressSlider.availableHeight / 2 - height / 2
+                width: progressSlider.availableWidth
+                height: 8
+                radius: 20
+                color: "black"
+
+                Rectangle {
+                    width: progressSlider.visualPosition * parent.width
+                    height: parent.height
+                    color: "white"
+                    radius: 20
+                }
+            }
+
+            handle: Rectangle {
+                color: "transparent"
+            }
+
             Text {
                 id: elapsedTime
+                color: textColor
                 text: formatTime(audioPlayer.position)
                 anchors.right: progressSlider.left
                 anchors.rightMargin: 10
@@ -83,6 +126,7 @@ Item {
 
             Text {
                 id: totalTime
+                color: textColor
                 text: audioPlayer.curId >= 0 ?
                           formatTime(audioPlayer.fileDurations[audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])]) : "0:00"
                 anchors.left: progressSlider.right
@@ -93,7 +137,7 @@ Item {
 
         Slider {
             id: volumeSlider
-            width: Math.min(250, parent.width * 0.2)
+            width: 250
             anchors.right: parent.right
             anchors.rightMargin: 40
             anchors.verticalCenter: progressSlider.verticalCenter
@@ -101,6 +145,26 @@ Item {
             to: 1
             value: audioPlayer.volume
             onMoved: audioPlayer.setVolume(value)
+
+            background: Rectangle {
+                x: volumeSlider.leftPadding
+                y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
+                width: volumeSlider.availableWidth
+                height: 8
+                radius: 20
+                color: "black"
+
+                Rectangle {
+                    width: volumeSlider.visualPosition * parent.width
+                    height: parent.height
+                    color: "white"
+                    radius: 20
+                }
+            }
+
+            handle: Rectangle {
+                color: "transparent"
+            }
         }
 
         Connections {
