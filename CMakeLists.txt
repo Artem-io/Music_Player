@@ -45,7 +45,6 @@ set_target_properties(appMusic_Player_2 PROPERTIES
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
-    #QT_QUICK_CONTROLS_STYLE "Material"
 )
 
 target_link_libraries(appMusic_Player_2

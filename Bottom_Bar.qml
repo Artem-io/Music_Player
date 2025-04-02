@@ -13,7 +13,7 @@ Item {
     Rectangle {
         id: bottomBar
         anchors.fill: parent
-        color: "#171717"
+        color: "#212121"
         property int butWidth: 30
         property int butHeight: 32
 
@@ -21,7 +21,7 @@ Item {
             id: row
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
-            anchors.topMargin: 8
+            anchors.topMargin: 20
             spacing: 30
 
             Image_Button {
@@ -29,7 +29,7 @@ Item {
                 enabled: audioPlayer.curId > 0
                 width: bottomBar.butWidth
                 height: bottomBar.butHeight
-                scale: -1
+                scale: -next.scale
 
                 image: enabled? "assets/icons/next_track.png" : "assets/icons/next_track_unavailable.png"
                 onClicked: {
@@ -43,6 +43,7 @@ Item {
                 enabled: audioPlayer.curSongList.length > 0
                 width: bottomBar.butWidth
                 height: bottomBar.butHeight
+                scale: 1.3
 
                 image: {
                     if(enabled) audioPlayer.isPlaying ? "assets/icons/pause.png" : "assets/icons/play.png"
@@ -58,6 +59,7 @@ Item {
                          audioPlayer.curSongList.length > 0
                 width: bottomBar.butWidth
                 height: bottomBar.butHeight
+                scale: 0.8
 
                 image: enabled? "assets/icons/next_track.png" : "assets/icons/next_track_unavailable.png"
                 onClicked: {

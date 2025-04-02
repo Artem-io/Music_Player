@@ -7,6 +7,7 @@ Item {
     width: 250
     height: 500
     property string selectedTab: "Library"
+    property color textColor: "white"
 
     anchors {
         bottom: bottomBar.top
@@ -17,7 +18,7 @@ Item {
 
     Rectangle {
         id: sideBar
-        color: "grey"
+        color: "#2B2B2B"
         radius: 20
         anchors.fill: parent
 
@@ -26,20 +27,18 @@ Item {
             spacing: 10
 
             Repeater {
-                model: ["Library", "Favourites", "Playlists", "Settings"] // Added Playlists
+                model: ["Library", "Favourites", "Playlists", "Settings"]
 
                 Button {
                     width: parent.width
                     height: 50
-                    text: modelData
-                    flat: true
-                    font.pixelSize: 16
-                    palette.buttonText: root.selectedTab === modelData ? "white" : "#cccccc"
-                    Rectangle {
-                        anchors.fill: parent
-                        color: root.selectedTab === modelData ? "#555555" : "transparent"
-                        z: -1
+                    Text {
+                        anchors.centerIn: parent
+                        text: modelData
+                        font.pixelSize: 16
+                        color: textColor
                     }
+                    flat: true
                     onClicked: root.selectedTab = modelData
                 }
             }

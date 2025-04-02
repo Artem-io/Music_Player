@@ -1,6 +1,5 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-//#include <QQuickStyle>
 
 #include "audioplayer.h"
 

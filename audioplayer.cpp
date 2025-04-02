@@ -159,7 +159,7 @@ void AudioPlayer::savePlaylists()
     settings.beginGroup("playlists");
     settings.remove("");
     for (const QString& name : playlists.keys()) {
-        settings.setValue(name, playlists[name].toStringList()); // Extract QStringList from QVariant
+        settings.setValue(name, playlists[name].toStringList());
     }
     settings.endGroup();
 }
@@ -170,7 +170,7 @@ void AudioPlayer::loadPlaylists()
     settings.beginGroup("playlists");
     QStringList playlistNames = settings.childKeys();
     for (const QString& name : playlistNames) {
-        playlists[name] = settings.value(name).toStringList(); // Store as QVariant
+        playlists[name] = settings.value(name).toStringList();
     }
     settings.endGroup();
 }

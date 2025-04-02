@@ -6,8 +6,10 @@ import AudioPlayer 1.0
 Item {
     id: root
     width: 500
-    height: 400
+    height: 530
 
+    property int textSize: 11
+    property color textColor: "white"
     property string searchQuery: ""
     property var filteredFiles: {
         if (searchQuery === "") return audioPlayer.filePaths;
@@ -19,55 +21,76 @@ Item {
         }
     }
 
-    Rectangle {
-        id: fileListContainer
-        anchors.fill: parent
+    TextField {
+        id: searchField
+        width: parent.width-10
+        height: 40
+        placeholderText: "Search..."
+        color: "white"
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: roundCorners.top
+        anchors.topMargin: 5
+        z: roundCorners.z+1
 
-        TextField {
-            id: searchField
-            width: parent.width
-            height: 40
-            placeholderText: "Search..."
-            onTextChanged: {
-                searchQuery = text;
-                audioPlayer.setCurSongList(filteredFiles);
-            }
+        background: Rectangle {
+            color: "#595959"
+            radius: 20
+            border.color: "transparent"
         }
+
+        onTextChanged: {
+            searchQuery = text;
+            audioPlayer.setCurSongList(filteredFiles);
+        }
+    }
+
+    Rectangle {
+        id: roundCorners
+        height: 530
+        width: 500
+        radius: 20
+        color: "#2B2B2B"
 
         ListView {
             id: fileList
-            anchors {
-                top: searchField.bottom
-                bottom: parent.bottom
-                left: parent.left
-                right: parent.right
-            }
             model: filteredFiles
             clip: true
+            anchors.topMargin: 50
+            anchors.fill: parent
+            anchors.leftMargin: 5
+            anchors.rightMargin: 5
 
             delegate: Rectangle {
                 width: fileList.width
                 height: 40
-                color: audioPlayer.curSongList[audioPlayer.curId] === modelData ? "lightblue" : "white"
-                border.color: "gray"
+                radius: 10
+                color: audioPlayer.curSongList[audioPlayer.curId] === modelData ? "#595959" : "#2B2B2B"
 
                 Row {
                     anchors.centerIn: parent
-                    spacing: 20
+                    spacing: 50
 
-                    Text { text: index + 1; width: 20 } // index
+                    Text { // index
+                        text: index + 1;
+                        width: 20
+                        color: root.textColor
+                        font.pointSize: root.textSize
+                    }
+
                     Text { // song name
                         text: modelData.split('/').pop().substring(0, modelData.split('/').pop().lastIndexOf('.'))
                         width: 200
                         elide: Text.ElideRight
+                        color: root.textColor
+                        font.pointSize: root.textSize
                     }
 
                     Image_Button {
                         id: like
-                        width: 30
-                        height: 30
+                        width: 15
+                        height: 15
                         onClicked: audioPlayer.toggleFavourite(modelData)
-                        image: audioPlayer.favourites.includes(modelData)? "assets/icons/heart_filled.png":"assets/icons/heart_empty.png"
+                        image: audioPlayer.favourites.includes(modelData) ? "assets/icons/heart_filled.png" : "assets/icons/heart_empty.png"
                     }
 
                     Text { // duration
@@ -82,6 +105,8 @@ Item {
                             return "0:00";
                         }
                         width: 60
+                        color: root.textColor
+                        font.pointSize: root.textSize
                     }
                 }
 
@@ -97,8 +122,20 @@ Item {
             }
 
             ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AsNeeded
-                width: 20
+                id: control
+                size: 0.3
+                position: 0.2
+
+                contentItem: Rectangle {
+                    width: 6
+                    height: 100
+                    radius: width / 2
+                    color: control.pressed ? "grey" : "lightgrey"
+                    opacity: control.policy === ScrollBar.AlwaysOn || (control.active && control.size < 1.0) ? 0.75 : 0
+                    Behavior on opacity {
+                        NumberAnimation {}
+                    }
+                }
             }
         }
     }

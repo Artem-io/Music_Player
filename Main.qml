@@ -1,16 +1,17 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Dialogs
 import QtQuick.Controls.Material
 import AudioPlayer 1.0
 
 ApplicationWindow {
+    id: root
     width: 1920
     height: 1080
     visible: true
     visibility: Window.Maximized
     title: qsTr("Music Player")
-    color: "#262626"
+    color: "#4A4A4A"
+    property color textColor: "white"
 
     AudioPlayer {
         id: audioPlayer
@@ -21,8 +22,10 @@ ApplicationWindow {
     }
 
     Loader {
-        anchors.centerIn: parent
         id: contentLoader
+        anchors.bottom: bottomBar.top
+        anchors.horizontalCenter: parent.horizontalCenter
+
         sourceComponent: {
             switch (sideBar.selectedTab) {
             case "Library": return libraryComponent;
@@ -36,19 +39,18 @@ ApplicationWindow {
 
     Component {
         id: libraryComponent
-        File_List {
-            id: library
-            anchors.centerIn: parent
-            Component.onCompleted: audioPlayer.setCurSongList(filteredFiles)
-            onFilteredFilesChanged: audioPlayer.setCurSongList(filteredFiles)
-        }
+
+            File_List {
+                id: library
+                Component.onCompleted: audioPlayer.setCurSongList(filteredFiles)
+                onFilteredFilesChanged: audioPlayer.setCurSongList(filteredFiles)
+            }
     }
 
     Component {
         id: likedComponent
         File_List {
             id: liked
-            anchors.centerIn: parent
             filteredFiles: {
                 if (searchQuery === "") return audioPlayer.favourites;
                 else {
@@ -76,7 +78,7 @@ ApplicationWindow {
             anchors.fill: parent
             Text {
                 anchors.centerIn: parent
-                text: "Settings (Not Implemented Yet)"
+                text: "Settings"
             }
         }
     }
