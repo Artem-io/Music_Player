@@ -61,7 +61,7 @@ void AudioPlayer::setFiles(const QStringList& fileUrls)
 
 void AudioPlayer::setCurId(int id)
 {
-    if (curId != id && id >= 0 && id < curSongList.size()) {  // Check against currentPlaylist
+    if (curId != id && id >= 0 && id < curSongList.size()) {
         curId = id;
         player->setSource(QUrl::fromLocalFile(curSongList[curId]));
         emit curIdChanged();
@@ -72,10 +72,6 @@ void AudioPlayer::setCurSongList(const QStringList& playlist)
 {
     if (curSongList != playlist) {
         curSongList = playlist;
-        curId = -1; // Reset current ID
-        if (!curSongList.isEmpty()) {
-            setCurId(0); // Start with first song
-        }
         emit curSongListChanged();
     }
 }

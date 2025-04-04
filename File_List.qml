@@ -9,7 +9,7 @@ Item {
     height: 530
 
     property int textSize: 11
-    property color textColor: "white"
+    property color textColor: "#E6E6E6"
     property string searchQuery: ""
     property var filteredFiles: {
         if (searchQuery === "") return audioPlayer.filePaths;
@@ -26,22 +26,23 @@ Item {
         width: parent.width-10
         height: 40
         placeholderText: "Search..."
-        color: "white"
+        color: root.textColor
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: roundCorners.top
         anchors.topMargin: 5
         z: roundCorners.z+1
 
         background: Rectangle {
-            color: "#595959"
+            color: "#404040"
             radius: 20
             border.color: "transparent"
         }
 
         onTextChanged: {
             searchQuery = text;
-            audioPlayer.setCurSongList(filteredFiles);
+            //audioPlayer.setCurSongList(filteredFiles);
         }
+
     }
 
     Rectangle {
@@ -87,8 +88,8 @@ Item {
 
                     Image_Button {
                         id: like
-                        width: 15
-                        height: 15
+                        width: 20
+                        height: 20
                         onClicked: audioPlayer.toggleFavourite(modelData)
                         image: audioPlayer.favourites.includes(modelData) ? "assets/icons/heart_filled.png" : "assets/icons/heart_empty.png"
                     }

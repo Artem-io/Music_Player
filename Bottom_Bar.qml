@@ -8,7 +8,7 @@ Item {
     width: parent.width
     height: 100
     anchors.bottom: parent.bottom
-    property color textColor: "white"
+    property color textColor: "#D9D9D9"
 
     Rectangle {
         id: bottomBar
@@ -22,7 +22,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
             anchors.topMargin: 20
-            spacing: 30
+            spacing: 25
 
             Image_Button {
                 id: prev
@@ -31,7 +31,7 @@ Item {
                 height: bottomBar.butHeight
                 scale: -next.scale
 
-                image: enabled? "assets/icons/next_track.png" : "assets/icons/next_track_unavailable.png"
+                image: enabled? "assets/icons/next.png" : "assets/icons/next_un.png"
                 onClicked: {
                     audioPlayer.setCurId(audioPlayer.curId - 1);
                     if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause();
@@ -47,7 +47,7 @@ Item {
 
                 image: {
                     if(enabled) audioPlayer.isPlaying ? "assets/icons/pause.png" : "assets/icons/play.png"
-                    else "assets/icons/play_unavailable.png"
+                    else "assets/icons/play_un.png"
                 }
 
                 onClicked: audioPlayer.togglePlayPause()
@@ -59,9 +59,9 @@ Item {
                          audioPlayer.curSongList.length > 0
                 width: bottomBar.butWidth
                 height: bottomBar.butHeight
-                scale: 0.8
+                scale: 0.7
 
-                image: enabled? "assets/icons/next_track.png" : "assets/icons/next_track_unavailable.png"
+                image: enabled? "assets/icons/next.png" : "assets/icons/next_un.png"
                 onClicked: {
                     audioPlayer.setCurId(audioPlayer.curId + 1);
                     if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause();
@@ -74,7 +74,7 @@ Item {
         //     enabled: audioPlayer.curSongList.length > 1
         //     width: bottomBar.butWidth
         //     height: bottomBar.butHeight
-        //     image: enabled? "assets/icons/shuffle.png" : "assets/icons/shuffle_unavailable.png"
+        //     image: enabled? "assets/icons/shuffle.png" : "assets/icons/shuffle_un.png"
 
         //     onClicked: {
         //         let randomIndex;
@@ -103,12 +103,12 @@ Item {
                 width: progressSlider.availableWidth
                 height: 8
                 radius: 20
-                color: "black"
+                color: "#0D0D0D"
 
                 Rectangle {
                     width: progressSlider.visualPosition * parent.width
                     height: parent.height
-                    color: "white"
+                    color: "#D9D9D9"
                     radius: 20
                 }
             }
@@ -121,6 +121,8 @@ Item {
                 id: elapsedTime
                 color: textColor
                 text: formatTime(audioPlayer.position)
+                font.bold: true
+                font.pointSize: 11
                 anchors.right: progressSlider.left
                 anchors.rightMargin: 10
                 anchors.verticalCenter: progressSlider.verticalCenter
@@ -129,6 +131,8 @@ Item {
             Text {
                 id: totalTime
                 color: textColor
+                font.pointSize: 11
+                font.bold: true
                 text: audioPlayer.curId >= 0 ?
                           formatTime(audioPlayer.fileDurations[audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])]) : "0:00"
                 anchors.left: progressSlider.right
@@ -154,13 +158,29 @@ Item {
                 width: volumeSlider.availableWidth
                 height: 8
                 radius: 20
-                color: "black"
+                color: "#0D0D0D"
 
                 Rectangle {
                     width: volumeSlider.visualPosition * parent.width
                     height: parent.height
-                    color: "white"
+                    color: "#D9D9D9"
                     radius: 20
+                }
+
+                Image_Button {
+                    image: {
+                        if(volumeSlider.value === 0) "assets/icons/volume_null.png"
+                        else volumeSlider.value<0.5? "assets/icons/volume_half.png" : "assets/icons/volume_full.png"
+                    }
+                    width: 25
+                    height: 25
+                    anchors.right: parent.left
+                    anchors.rightMargin: 20
+                    y: -7
+
+                    onClicked: {
+                        audioPlayer.volume? audioPlayer.setVolume(0) : audioPlayer.setVolume(0.2)
+                    }
                 }
             }
 

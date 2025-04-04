@@ -35,11 +35,30 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: modelData
-                        font.pixelSize: 16
+                        font.pixelSize: 17
                         color: textColor
+                        font.bold: true
                     }
                     flat: true
                     onClicked: root.selectedTab = modelData
+
+                    Image {
+                        id: name
+                        scale: 0.45
+                        anchors.verticalCenter: parent.verticalCenter
+                        source: {
+                            switch(modelData) {
+                            case "Library": return root.selectedTab==="Library"?
+                                                "assets/icons/library_clicked.png" : "assets/icons/library.png"
+                            case "Playlists": return root.selectedTab==="Playlists"?
+                                               "assets/icons/playlists_clicked.png" : "assets/icons/playlists.png"
+                            case "Settings": return root.selectedTab==="Settings"?
+                                               "assets/icons/settings_clicked.png" : "assets/icons/settings.png"
+                            case "Favourites": return root.selectedTab==="Favourites"?
+                                               "assets/icons/favourites_clicked.png" : "assets/icons/favourites.png"
+                            }
+                        }
+                    }
                 }
             }
         }

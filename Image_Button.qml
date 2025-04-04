@@ -29,8 +29,10 @@ Item {
             color: "transparent"
         }
         onClicked: {
-            playPauseAnimation.start()
-            root.clicked()
+            if(root.enabled) {
+                playPauseAnimation.start()
+                root.clicked()
+            }
         }
 
         SequentialAnimation {
@@ -39,7 +41,7 @@ Item {
                 target: playPauseIcon
                 property: "scale"
                 to: 0.9
-                duration: 100
+                duration: 110
                 easing.type: Easing.InOutQuad
             }
 
@@ -47,7 +49,7 @@ Item {
                 target: playPauseIcon
                 property: "scale"
                 to: 1.0
-                duration: 100
+                duration: 170
                 easing.type: Easing.InOutQuad
             }
         }
