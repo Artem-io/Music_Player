@@ -6,11 +6,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick Qml Multimedia)
 
-qt_standard_project_setup(REQUIRES 6.8)
+qt_standard_project_setup (REQUIRES 6.8)
 
-qt_add_executable(appMusic_Player_2
-    main.cpp
-)
+qt_add_executable (appMusic_Player_2 main.cpp)
 
 qt_add_qml_module(appMusic_Player_2
     URI Music_Player_2
@@ -47,6 +45,8 @@ qt_add_qml_module(appMusic_Player_2
     assets/icons/settings_clicked.png
     assets/icons/favourites.png
     assets/icons/favourites_clicked.png
+
+    assets/icons/app_icon.ico
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

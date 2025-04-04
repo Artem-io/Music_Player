@@ -1,14 +1,17 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QIcon>
 
 #include "audioplayer.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
-    //QQuickStyle::setStyle("Material");
     QCoreApplication::setOrganizationName("Artemio");
     QCoreApplication::setApplicationName("MusicPlayer");
+
+    QGuiApplication::setWindowIcon(QIcon(":/assets/icons/app_icon.ico"));
+
 
     qmlRegisterType<AudioPlayer>("AudioPlayer", 1, 0, "AudioPlayer");
 

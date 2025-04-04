@@ -40,7 +40,6 @@ Item {
 
         onTextChanged: {
             searchQuery = text;
-            //audioPlayer.setCurSongList(filteredFiles);
         }
 
     }
@@ -88,10 +87,11 @@ Item {
 
                     Image_Button {
                         id: like
-                        width: 20
-                        height: 20
+                        width: 22
+                        height: 22
                         onClicked: audioPlayer.toggleFavourite(modelData)
-                        image: audioPlayer.favourites.includes(modelData) ? "assets/icons/heart_filled.png" : "assets/icons/heart_empty.png"
+                        image: audioPlayer.favourites.includes(modelData) ?
+                                   "assets/icons/heart_filled.png" : "assets/icons/heart_empty.png"
                     }
 
                     Text { // duration
