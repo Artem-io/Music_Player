@@ -11,7 +11,7 @@ ApplicationWindow {
     visibility: Window.Maximized
     title: qsTr("Music Player")
     color: "#4A4A4A"
-    property color textColor: "white"
+    property color textColor: "#E6E6E6"
 
     AudioPlayer {
         id: audioPlayer
@@ -39,7 +39,6 @@ ApplicationWindow {
 
     Component {
         id: libraryComponent
-
             File_List {
                 id: library
                 Component.onCompleted: audioPlayer.setCurSongList(filteredFiles)
@@ -75,10 +74,19 @@ ApplicationWindow {
     Component {
         id: settings
         Rectangle {
-            anchors.fill: parent
-            Text {
-                anchors.centerIn: parent
-                text: "Settings"
+            height: 550
+            width: 500
+            y: 20
+            radius: 20
+            color: "#2B2B2B"
+
+            Switch {
+                id: crossfade
+                text: qsTr("Crossfade")
+                anchors.top: parent. top
+                anchors.left: parent.left
+                anchors.topMargin: 20
+                anchors.leftMargin: 20
             }
         }
     }
@@ -98,7 +106,7 @@ ApplicationWindow {
 
     Button {
         id: addFiles
-        text: "Add Files"
+        text: "Choose Folder"
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.margins: 20

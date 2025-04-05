@@ -12,8 +12,9 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), curId(-1)
 
     loadLastFiles();
     loadFavourites();
-    loadPlaylists(); // new
-    curSongList=filePaths; // whole library by default
+    loadPlaylists();
+    loadPlayData();
+    curSongList=filePaths;
 }
 
 void AudioPlayer::setFiles(const QStringList& fileUrls)
@@ -34,14 +35,13 @@ void AudioPlayer::setFiles(const QStringList& fileUrls)
                 QCoreApplication::processEvents();
             }
             fileDurations.append(player->duration());
-            //qDebug() << "Added file:" << localFile << "Duration:" << player->duration();
         }
         else qDebug() << "Skipped invalid or missing file:" << url;
     }
 
     if (!filePaths.isEmpty()) {
         curId = 0;
-        curSongList = filePaths; // Reset to full library when new files are loaded
+        curSongList = filePaths;
         player->setSource(QUrl::fromLocalFile(filePaths[curId]));
         saveFilePaths(filePaths);
         emit filePathsChanged();
@@ -64,6 +64,9 @@ void AudioPlayer::setCurId(int id)
     if (curId != id && id >= 0 && id < curSongList.size()) {
         curId = id;
         player->setSource(QUrl::fromLocalFile(curSongList[curId]));
+        playCounts[curSongList[curId]] = playCounts.value(curSongList[curId], 0) + 1;
+        lastPlayed[curSongList[curId]] = QDateTime::currentDateTime();
+        savePlayData();
         emit curIdChanged();
     }
 }
@@ -78,9 +81,66 @@ void AudioPlayer::setCurSongList(const QStringList& playlist)
 
 void AudioPlayer::togglePlayPause()
 {
-    if (player->playbackState() == QMediaPlayer::PlayingState) player->pause();
-    else player->play();
+    if (player->playbackState() == QMediaPlayer::PlayingState) {
+        player->pause();
+    } else {
+        player->play();
+        if (curId >= 0 && curId < curSongList.size()) {
+            playCounts[curSongList[curId]] = playCounts.value(curSongList[curId], 0) + 1;
+            lastPlayed[curSongList[curId]] = QDateTime::currentDateTime();
+            savePlayData();
+        }
+    }
     emit playingStateChanged();
+}
+
+QStringList AudioPlayer::sortMost()
+{
+    QStringList sortedList = filePaths;
+    std::sort(sortedList.begin(), sortedList.end(), [&](const QString& a, const QString& b) {
+        return playCounts.value(a, 0) > playCounts.value(b, 0);
+    });
+    return sortedList;
+}
+
+QStringList AudioPlayer::sortLast()
+{
+    QStringList sortedList = filePaths;
+    std::sort(sortedList.begin(), sortedList.end(), [&](const QString& a, const QString& b) {
+        return lastPlayed.value(a, QDateTime()) > lastPlayed.value(b, QDateTime());
+    });
+    return sortedList;
+}
+
+QStringList AudioPlayer::sortLength(bool ascending)
+{
+    QStringList sortedList = filePaths;
+    std::sort(sortedList.begin(), sortedList.end(), [&](const QString& a, const QString& b) {
+        int indexA = filePaths.indexOf(a);
+        int indexB = filePaths.indexOf(b);
+        int durationA = (indexA >= 0 && indexA < fileDurations.size()) ? fileDurations[indexA] : 0;
+        int durationB = (indexB >= 0 && indexB < fileDurations.size()) ? fileDurations[indexB] : 0;
+        return ascending ? (durationA < durationB) : (durationA > durationB);
+    });
+    return sortedList;
+}
+
+void AudioPlayer::savePlayData()
+{
+    QSettings settings;
+    settings.beginGroup("playData");
+    settings.setValue("playCounts", QVariant::fromValue(playCounts));
+    settings.setValue("lastPlayed", QVariant::fromValue(lastPlayed));
+    settings.endGroup();
+}
+
+void AudioPlayer::loadPlayData()
+{
+    QSettings settings;
+    settings.beginGroup("playData");
+    playCounts = settings.value("playCounts").value<QMap<QString, int>>();
+    lastPlayed = settings.value("lastPlayed").value<QMap<QString, QDateTime>>();
+    settings.endGroup();
 }
 
 void AudioPlayer::setPosition(int pos)
@@ -137,7 +197,7 @@ void AudioPlayer::loadFavourites()
 
 void AudioPlayer::addPlaylist(const QString& name, const QStringList& files)
 {
-    playlists[name] = files; // Implicitly converts QStringList to QVariant
+    playlists[name] = files;
     savePlaylists();
     emit playlistsChanged();
 }

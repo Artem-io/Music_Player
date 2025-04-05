@@ -11,25 +11,43 @@ Item {
     property int textSize: 11
     property color textColor: "#E6E6E6"
     property string searchQuery: ""
+    property string sortMode: "default"
+
     property var filteredFiles: {
-        if (searchQuery === "") return audioPlayer.filePaths;
+        let baseList;
+        switch(sortMode) {
+        case "mostPlayed":
+            baseList = audioPlayer.sortMost();
+            break;
+        case "lastPlayed":
+            baseList = audioPlayer.sortLast();
+            break;
+        case "lengthAsc":
+            baseList = audioPlayer.sortLength(true); // asc
+            break;
+        case "lengthDesc":
+            baseList = audioPlayer.sortLength(false); // desc
+            break;
+        default:
+            baseList = audioPlayer.filePaths;
+        }
+
+        if (searchQuery === "") return baseList;
         else {
-            return audioPlayer.filePaths.filter(function(filePath) {
+            return baseList.filter(function(filePath) {
                 let fileName = filePath.split('/').pop().toLowerCase();
                 return fileName.includes(searchQuery.toLowerCase());
             });
         }
     }
 
+
     TextField {
         id: searchField
-        width: parent.width-10
+        width: parent.width-200
         height: 40
         placeholderText: "Search..."
         color: root.textColor
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: roundCorners.top
-        anchors.topMargin: 5
         z: roundCorners.z+1
 
         background: Rectangle {
@@ -41,38 +59,127 @@ Item {
         onTextChanged: {
             searchQuery = text;
         }
+    }
 
+    ComboBox {
+        id: sortCombo
+        width: parent.width-searchField.width-15
+        height: searchField.height
+        anchors.left: searchField.right
+        anchors.leftMargin: 15
+        model: [
+            "Default",
+            "Most Played",
+            "Last Played",
+            "Shortest First",
+            "Longest First"
+        ]
+        currentIndex: 0
+        onCurrentIndexChanged: {
+            switch(currentIndex) {
+            case 0: sortMode = "default"; break;
+            case 1: sortMode = "mostPlayed"; break;
+            case 2: sortMode = "lastPlayed"; break;
+            case 3: sortMode = "lengthAsc"; break;
+            case 4: sortMode = "lengthDesc"; break;
+            }
+        }
+
+        background: Rectangle {
+            color: "#404040"
+            radius: 20
+        }
+
+        contentItem: Text {
+            text: sortCombo.displayText
+            color: root.textColor
+            font.pointSize: 13
+            verticalAlignment: Text.AlignVCenter
+            leftPadding: 15
+            rightPadding: sortCombo.indicator.width + sortCombo.spacing
+        }
+
+        popup: Popup {
+            y: sortCombo.height + 5
+            width: sortCombo.width
+            implicitHeight: contentItem.implicitHeight + 10
+            padding: 5
+
+            contentItem: ListView {
+                id: popupList
+                clip: true
+                implicitHeight: contentHeight
+                model: sortCombo.model
+                currentIndex: sortCombo.currentIndex
+                spacing: 2
+
+                delegate: ItemDelegate {
+                    width: parent.width
+                    height: 40
+
+                    contentItem: Text {
+                        text: modelData
+                        color: root.textColor
+                        font.pointSize: 13
+                        verticalAlignment: Text.AlignVCenter
+                        leftPadding: 15
+                    }
+
+                    background: Rectangle {
+                        color: hovered ? "#595959" : "#404040"
+                        radius: 16
+                    }
+
+                    onClicked: {
+                        sortCombo.currentIndex = index
+                        sortCombo.popup.close()
+                    }
+                }
+            }
+
+            background: Rectangle {
+                color: "#404040"
+                radius: 20
+            }
+        }
     }
 
     Rectangle {
         id: roundCorners
-        height: 530
+        height: 550
         width: 500
         radius: 20
         color: "#2B2B2B"
+        anchors.top: searchField.bottom
+        anchors.topMargin: 10
 
         ListView {
             id: fileList
             model: filteredFiles
             clip: true
-            anchors.topMargin: 50
-            anchors.fill: parent
-            anchors.leftMargin: 5
-            anchors.rightMargin: 5
+            anchors {
+                fill: parent
+                topMargin: 20
+                bottomMargin: 70
+                leftMargin: 15
+                rightMargin: 15
+            }
 
             delegate: Rectangle {
-                width: fileList.width
+                width: fileList.width-20
                 height: 40
                 radius: 10
                 color: audioPlayer.curSongList[audioPlayer.curId] === modelData ? "#595959" : "#2B2B2B"
 
                 Row {
-                    anchors.centerIn: parent
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: parent.left
+                    anchors.leftMargin: 20
                     spacing: 50
 
                     Text { // index
                         text: index + 1;
-                        width: 20
+                        width: 5
                         color: root.textColor
                         font.pointSize: root.textSize
                     }
@@ -112,7 +219,7 @@ Item {
                 }
 
                 MouseArea {
-                    width: parent.width - like.x
+                    width: parent.width - like.x/2
                     height: parent.height
 
                     onClicked: {
