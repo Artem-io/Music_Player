@@ -12,24 +12,25 @@ Item {
     property color textColor: "#E6E6E6"
     property string searchQuery: ""
     property string sortMode: "default"
+    property var baseSource: audioPlayer.filePaths
 
     property var filteredFiles: {
         let baseList;
         switch(sortMode) {
         case "mostPlayed":
-            baseList = audioPlayer.sortMost();
+            baseList = audioPlayer.sortMost().filter(file => baseSource.includes(file));
             break;
         case "lastPlayed":
-            baseList = audioPlayer.sortLast();
+            baseList = audioPlayer.sortLast().filter(file => baseSource.includes(file));
             break;
         case "lengthAsc":
-            baseList = audioPlayer.sortLength(true); // asc
+            baseList = audioPlayer.sortLength(true).filter(file => baseSource.includes(file));
             break;
         case "lengthDesc":
-            baseList = audioPlayer.sortLength(false); // desc
+            baseList = audioPlayer.sortLength(false).filter(file => baseSource.includes(file));
             break;
         default:
-            baseList = audioPlayer.filePaths;
+            baseList = baseSource;
         }
 
         if (searchQuery === "") return baseList;

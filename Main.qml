@@ -39,26 +39,19 @@ ApplicationWindow {
 
     Component {
         id: libraryComponent
-            File_List {
-                id: library
-                Component.onCompleted: audioPlayer.setCurSongList(filteredFiles)
-                onFilteredFilesChanged: audioPlayer.setCurSongList(filteredFiles)
-            }
+        File_List {
+            id: library
+            baseSource: audioPlayer.filePaths
+            Component.onCompleted: audioPlayer.setCurSongList(filteredFiles)
+            onFilteredFilesChanged: audioPlayer.setCurSongList(filteredFiles)
+        }
     }
 
     Component {
         id: likedComponent
         File_List {
             id: liked
-            filteredFiles: {
-                if (searchQuery === "") return audioPlayer.favourites;
-                else {
-                    return audioPlayer.favourites.filter(function(filePath) {
-                        let fileName = filePath.split('/').pop().toLowerCase();
-                        return fileName.includes(searchQuery.toLowerCase());
-                    });
-                }
-            }
+            baseSource: audioPlayer.favourites
             Component.onCompleted: audioPlayer.setCurSongList(filteredFiles)
             onFilteredFilesChanged: audioPlayer.setCurSongList(filteredFiles)
         }
@@ -82,11 +75,21 @@ ApplicationWindow {
 
             Switch {
                 id: crossfade
-                text: qsTr("Crossfade")
-                anchors.top: parent. top
-                anchors.left: parent.left
-                anchors.topMargin: 20
-                anchors.leftMargin: 20
+                Text {
+                    anchors.left: parent.right
+                    anchors.leftMargin: 10
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Crossfade"
+                    color: root.textColor
+                    font.pointSize: 12
+                }
+
+                anchors {
+                    top: parent. top
+                    left: parent.left
+                    topMargin: 20
+                    leftMargin: 20
+                }
             }
         }
     }

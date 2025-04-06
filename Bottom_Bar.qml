@@ -26,7 +26,7 @@ Item {
 
             Image_Button {
                 id: prev
-                enabled: audioPlayer.curId > 0
+                enabled: audioPlayer.curId > 0 && sideBar.selectedTab != "Settings"
                 width: bottomBar.butWidth
                 height: bottomBar.butHeight
                 scale: -next.scale
@@ -40,7 +40,7 @@ Item {
 
             Image_Button {
                 id: playPause
-                enabled: audioPlayer.curSongList.length > 0
+                enabled: audioPlayer.curSongList.length > 0 && sideBar.selectedTab != "Settings"
                 width: bottomBar.butWidth
                 height: bottomBar.butHeight
                 scale: 1.3
@@ -56,7 +56,7 @@ Item {
             Image_Button {
                 id: next
                 enabled: audioPlayer.curId < audioPlayer.curSongList.length - 1 &&
-                         audioPlayer.curSongList.length > 0
+                         audioPlayer.curSongList.length > 0 && sideBar.selectedTab != "Settings"
                 width: bottomBar.butWidth
                 height: bottomBar.butHeight
                 scale: 0.7
@@ -133,8 +133,9 @@ Item {
                 color: textColor
                 font.pointSize: 11
                 font.bold: true
-                text: audioPlayer.curId >= 0 ?
-                          formatTime(audioPlayer.fileDurations[audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])]) : "0:00"
+                text: (audioPlayer.curId >= 0 && sideBar.selectedTab != "Settings") ?
+                formatTime(audioPlayer.fileDurations[audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])])
+                : "0:00"
                 anchors.left: progressSlider.right
                 anchors.leftMargin: 10
                 anchors.verticalCenter: progressSlider.verticalCenter

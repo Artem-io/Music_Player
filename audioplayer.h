@@ -6,10 +6,18 @@
 #include <QAudioOutput>
 #include <QDebug>
 #include <QList>
+#include <QMap>
+#include <QDateTime>
 #include <QFileInfo>
 #include <QCoreApplication>
 #include <QSettings>
 #include <QDir>
+
+using PlayCountMap = QMap<QString, int>;
+using LastPlayedMap = QMap<QString, QDateTime>;
+
+Q_DECLARE_METATYPE(PlayCountMap);
+Q_DECLARE_METATYPE(LastPlayedMap);
 
 class AudioPlayer: public QObject
 {
@@ -22,8 +30,8 @@ class AudioPlayer: public QObject
     QVariantMap playlists;
     QStringList curSongList;
     int curId;
-    QMap<QString, int> playCounts;
-    QMap<QString, QDateTime> lastPlayed;
+    PlayCountMap playCounts;
+    LastPlayedMap lastPlayed;
 
     Q_PROPERTY(QStringList filePaths READ getFilePaths NOTIFY filePathsChanged)
     Q_PROPERTY(QList<int> fileDurations READ getFileDurations NOTIFY fileDurationsChanged)

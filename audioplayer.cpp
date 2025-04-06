@@ -10,6 +10,9 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), curId(-1)
     connect(player, &QMediaPlayer::playbackStateChanged, this, &AudioPlayer::playingStateChanged);
     connect(player, &QMediaPlayer::positionChanged, this, &AudioPlayer::positionChanged);
 
+    qRegisterMetaType<PlayCountMap>("PlayCountMap");
+    qRegisterMetaType<LastPlayedMap>("LastPlayedMap");
+
     loadLastFiles();
     loadFavourites();
     loadPlaylists();
@@ -81,9 +84,8 @@ void AudioPlayer::setCurSongList(const QStringList& playlist)
 
 void AudioPlayer::togglePlayPause()
 {
-    if (player->playbackState() == QMediaPlayer::PlayingState) {
-        player->pause();
-    } else {
+    if (player->playbackState() == QMediaPlayer::PlayingState) player->pause();
+    else {
         player->play();
         if (curId >= 0 && curId < curSongList.size()) {
             playCounts[curSongList[curId]] = playCounts.value(curSongList[curId], 0) + 1;
@@ -132,15 +134,36 @@ void AudioPlayer::savePlayData()
     settings.setValue("playCounts", QVariant::fromValue(playCounts));
     settings.setValue("lastPlayed", QVariant::fromValue(lastPlayed));
     settings.endGroup();
+    qDebug() << "Saved playCounts:" << playCounts;
+    qDebug() << "Saved lastPlayed:" << lastPlayed;
 }
 
 void AudioPlayer::loadPlayData()
 {
     QSettings settings;
     settings.beginGroup("playData");
-    playCounts = settings.value("playCounts").value<QMap<QString, int>>();
-    lastPlayed = settings.value("lastPlayed").value<QMap<QString, QDateTime>>();
+
+    QVariant playCountsVariant = settings.value("playCounts");
+    if (playCountsVariant.isValid() && playCountsVariant.canConvert<PlayCountMap>()) {
+        playCounts = playCountsVariant.value<PlayCountMap>();
+    }
+    else {
+        playCounts.clear();
+        qDebug() << "playCounts not found";
+    }
+
+    QVariant lastPlayedVariant = settings.value("lastPlayed");
+    if (lastPlayedVariant.isValid() && lastPlayedVariant.canConvert<LastPlayedMap>()) {
+        lastPlayed = lastPlayedVariant.value<LastPlayedMap>();
+    }
+    else {
+        lastPlayed.clear();
+        qDebug() << "lastPlayed not found";
+    }
+
     settings.endGroup();
+    qDebug() << "Loaded playCounts:" << playCounts;
+    qDebug() << "Loaded lastPlayed:" << lastPlayed;
 }
 
 void AudioPlayer::setPosition(int pos)
