@@ -29,7 +29,7 @@ ApplicationWindow {
         sourceComponent: {
             switch (sideBar.selectedTab) {
             case "Library": return libraryComponent;
-            case "Favourites": return likedComponent;
+            case "Favorites": return likedComponent;
             case "Playlists": return playlistComponent;
             case "Settings": return settings;
             default: return libraryComponent;

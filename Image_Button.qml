@@ -14,7 +14,7 @@ Item {
 
     Button {
         id: playPause
-        enabled: audioPlayer.curSongList.length > 0
+        enabled: root.enabled
         width: root.width
         height: root.height
 

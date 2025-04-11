@@ -6,12 +6,42 @@ import AudioPlayer 1.0
 Item {
     id: root
     width: 500
-    height: 400
+    height: 530
+
+    Image_Button {
+        id: addPlaylistButton
+        width: 30
+        height: 30
+        x: -150
+        rotation: 45
+        visible: !playlistFilesView.visible
+        image: "assets/icons/cross.png"
+        onClicked: {
+            playlistName.text = ""
+            let newArr = new Array(audioPlayer.filePaths.length)
+            newArr.fill(false)
+            root.checkedStates = newArr
+            playlistDialog.open()
+        }
+    }
 
     property var checkedStates: {
         let arr = new Array(audioPlayer.filePaths.length)
         arr.fill(false)
         return arr
+    }
+
+    ListModel {
+        id: playlistModel
+        Component.onCompleted: {
+            let initialPlaylists = []
+            for (var key in audioPlayer.playlists) {
+                initialPlaylists.push(key)
+            }
+            for (var i = 0; i < initialPlaylists.length; i++) {
+                append({ "name": initialPlaylists[i] })
+            }
+        }
     }
 
     Connections {
@@ -21,65 +51,120 @@ Item {
             newArr.fill(false)
             root.checkedStates = newArr
         }
-    }
+        function onPlaylistsChanged() {
+            let currentNames = []
+            for (var i = 0; i < playlistModel.count; i++) {
+                currentNames.push(playlistModel.get(i).name)
+            }
+            let newNames = []
+            for (var key in audioPlayer.playlists) {
+                newNames.push(key)
+            }
 
-    Column { // all playlists
-        id: playlistListView
-        anchors.fill: parent
-        spacing: 10
-        visible: !playlistFilesView.visible
+            for (var i = playlistModel.count - 1; i >= 0; i--) {
+                if (!newNames.includes(currentNames[i])) {
+                    playlistModel.remove(i)
+                }
+            }
 
-        Button {
-            text: "Add Playlist"
-            onClicked: {
-                playlistName.text = ""
-                let newArr = new Array(audioPlayer.filePaths.length)
-                newArr.fill(false)
-                root.checkedStates = newArr
-                playlistDialog.open()
+            for (var j = 0; j < newNames.length; j++) {
+                if (!currentNames.includes(newNames[j])) {
+                    playlistModel.append({ "name": newNames[j] })
+                }
             }
         }
+    }
 
-        ListView {
-            width: parent.width
-            height: parent.height - 50
-            model: Object.keys(audioPlayer.playlists)
-            clip: true
+    GridView {
+        id: playlistGrid
+        visible: !playlistFilesView.visible
+        model: playlistModel
+        width: 1000
+        height: parent.height
+        anchors.left: addPlaylistButton.right
+        anchors.leftMargin: 80
+        cellHeight: 190
+        cellWidth: 170
+        clip: true
 
-            delegate: Rectangle {
-                width: parent.width
-                height: 40
-                color: "white"
-                border.color: "gray"
+        delegate: Rectangle {
+            height: playlistGrid.cellHeight - 40
+            width: playlistGrid.cellWidth - 20
+            color: "#2B2B2B"
+            border.color: "gray"
+            radius: 15
 
-                Row {
-                    anchors.fill: parent
-                    spacing: 10
-                    padding: 5
+            Text {
+                anchors.top: parent.bottom
+                font.pointSize: 12
+                text: name
+                color: "#E6E6E6"
+                width: parent.width - 10
+                horizontalAlignment: Text.AlignHCenter
+            }
 
-                    Text {
-                        text: modelData
-                        width: parent.width - 80
-                    }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    playlistFilesView.files = audioPlayer.playlists[name]
+                    audioPlayer.setCurSongList(playlistFilesView.filteredFiles)
+                    playlistFilesView.visible = true
+                    playlistFilesView.searchQuery = ""
+                }
+            }
 
-                    Button {
-                        id: del
-                        text: "Delete"
-                        onClicked: audioPlayer.removePlaylist(modelData)
+            Image_Button {
+                id: moreIcon
+                image: "assets/icons/options.png"
+                width: 25
+                height: 25
+                anchors {
+                    right: parent.right
+                    bottom: parent.bottom
+                    rightMargin: 10
+                    bottomMargin: 10
+                }
+                onClicked: contextMenu.open()
+            }
+
+            Menu {
+                id: contextMenu
+                x: moreIcon.x
+                y: moreIcon.y - height
+
+                MenuItem {
+                    text: "Delete"
+                    onTriggered: audioPlayer.removePlaylist(name)
+                }
+                MenuItem {
+                    text: "Add song"
+                    onTriggered: {
+                        playlistName.text = name
+                        let newArr = new Array(audioPlayer.filePaths.length)
+                        newArr.fill(false)
+                        let currentFiles = audioPlayer.playlists[name]
+                        for (let i = 0; i < audioPlayer.filePaths.length; i++) {
+                            if (currentFiles.includes(audioPlayer.filePaths[i])) {
+                                newArr[i] = true
+                            }
+                        }
+                        root.checkedStates = newArr
+                        playlistDialog.open()
                     }
                 }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onPressed: {
-                        if (!del.hovered) {
-                            playlistFilesView.files = audioPlayer.playlists[modelData]
-                            audioPlayer.setCurSongList(playlistFilesView.filteredFiles)
-                            playlistFilesView.visible = true
-                            playlistFilesView.searchQuery = ""
-                            mouse.accepted = true
-                        }
-                        else mouse.accepted = false
+                MenuItem {
+                    text: "Remove song"
+                    onTriggered: {
+                        removeSongDialog.files = audioPlayer.playlists[name]
+                        removeSongDialog.open()
+                    }
+                }
+                MenuItem {
+                    text: "Rename"
+                    onTriggered: {
+                        renameDialog.oldName = name
+                        renameDialog.newName = name
+                        renameDialog.open()
                     }
                 }
             }
@@ -88,7 +173,7 @@ Item {
 
     Dialog {
         id: playlistDialog
-        title: "Create New Playlist"
+        title: "Create/Edit Playlist"
         standardButtons: Dialog.Ok | Dialog.Cancel
         modal: true
         anchors.centerIn: parent
@@ -133,29 +218,85 @@ Item {
         }
     }
 
+    Dialog {
+        id: removeSongDialog
+        title: "Remove Song"
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        modal: true
+        anchors.centerIn: parent
+
+        property var files: []
+
+        Column {
+            spacing: 10
+            width: 300
+
+            ListView {
+                width: parent.width
+                height: 200
+                model: removeSongDialog.files
+                clip: true
+
+                delegate: CheckDelegate {
+                    width: parent.width
+                    text: modelData.split('/').pop()
+                    checked: false
+                    onCheckedChanged: {
+                        if (checked) removeSongDialog.files = removeSongDialog.files.filter(f => f !== modelData)
+                    }
+                }
+            }
+        }
+
+        onAccepted: {
+            audioPlayer.addPlaylist(playlistName.text, removeSongDialog.files)
+        }
+    }
+
+    Dialog {
+        id: renameDialog
+        title: "Rename Playlist"
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        modal: true
+        anchors.centerIn: parent
+
+        property string oldName: ""
+        property string newName: ""
+
+        TextField {
+            id: renameField
+            width: 300
+            text: renameDialog.newName
+            placeholderText: "New Playlist Name"
+            onTextChanged: renameDialog.newName = text
+        }
+
+        onAccepted: {
+            if (renameDialog.newName && renameDialog.newName !== renameDialog.oldName) {
+                let playlistFiles = audioPlayer.playlists[renameDialog.oldName]
+                audioPlayer.removePlaylist(renameDialog.oldName)
+                audioPlayer.addPlaylist(renameDialog.newName, playlistFiles)
+            }
+        }
+    }
+
     File_List {
         id: playlistFilesView
         visible: false
         anchors.fill: parent
+        baseSource: files
         property var files: []
-
-        filteredFiles: {
-            if (searchQuery === "") return files
-            else {
-                return files.filter(function(filePath) {
-                    let fileName = filePath.split('/').pop().toLowerCase()
-                    return fileName.includes(searchQuery.toLowerCase())
-                })
-            }
-        }
         onFilteredFilesChanged: audioPlayer.setCurSongList(filteredFiles)
 
-        Button {
+        Image_Button {
             id: backButton
-            text: "Back"
-            anchors.top: parent.top
-            anchors.right: parent.left
-            anchors.margins: 10
+            image: "assets/icons/back.png"
+            anchors {
+                right: parent.left
+                rightMargin: 15
+                top: parent.top
+                topMargin: 5
+            }
             onClicked: {
                 playlistFilesView.visible = false
                 audioPlayer.setCurSongList(audioPlayer.filePaths)

@@ -29,7 +29,7 @@ Item {
 
             Repeater {
                 id: tabRepeater
-                model: ["Library", "Favourites", "Playlists", "Settings"]
+                model: ["Library", "Favorites", "Playlists", "Settings"]
 
                 Button {
                     id: tab
@@ -83,7 +83,7 @@ Item {
                                                   "assets/icons/playlists_clicked.png" : "assets/icons/playlists.png"
                             case "Settings": return root.selectedTab==="Settings"?
                                                  "assets/icons/settings_clicked.png" : "assets/icons/settings.png"
-                            case "Favourites": return root.selectedTab==="Favourites"?
+                            case "Favorites": return root.selectedTab==="Favorites"?
                                                    "assets/icons/favourites_clicked.png" : "assets/icons/favourites.png"
                             }
                         }
