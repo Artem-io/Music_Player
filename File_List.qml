@@ -15,33 +15,31 @@ Item {
     property var baseSource: audioPlayer.filePaths
 
     property var filteredFiles: {
-        let baseList;
+        let baseList
         switch(sortMode) {
         case "mostPlayed":
-            baseList = audioPlayer.sortMost().filter(file => baseSource.includes(file));
-            break;
+            baseList = audioPlayer.sortMost().filter(file => baseSource.includes(file))
+            break
         case "lastPlayed":
-            baseList = audioPlayer.sortLast().filter(file => baseSource.includes(file));
-            break;
+            baseList = audioPlayer.sortLast().filter(file => baseSource.includes(file))
+            break
         case "lengthAsc":
-            baseList = audioPlayer.sortLength(true).filter(file => baseSource.includes(file));
-            break;
+            baseList = audioPlayer.sortLength(true).filter(file => baseSource.includes(file))
+            break
         case "lengthDesc":
-            baseList = audioPlayer.sortLength(false).filter(file => baseSource.includes(file));
-            break;
-        default:
-            baseList = baseSource;
+            baseList = audioPlayer.sortLength(false).filter(file => baseSource.includes(file))
+            break
+        default: baseList = baseSource
         }
 
-        if (searchQuery === "") return baseList;
+        if (searchQuery === "") return baseList
         else {
             return baseList.filter(function(filePath) {
-                let fileName = filePath.split('/').pop().toLowerCase();
-                return fileName.includes(searchQuery.toLowerCase());
-            });
+                let fileName = filePath.split('/').pop().toLowerCase()
+                return fileName.includes(searchQuery.toLowerCase())
+            })
         }
     }
-
 
     TextField {
         id: searchField
@@ -52,14 +50,12 @@ Item {
         z: roundCorners.z+1
 
         background: Rectangle {
-            color: "#404040"
+            color: "#36393F"
             radius: 20
             border.color: "transparent"
         }
 
-        onTextChanged: {
-            searchQuery = text;
-        }
+        onTextChanged: searchQuery = text
     }
 
     ComboBox {
@@ -78,16 +74,16 @@ Item {
         currentIndex: 0
         onCurrentIndexChanged: {
             switch(currentIndex) {
-            case 0: sortMode = "default"; break;
-            case 1: sortMode = "mostPlayed"; break;
-            case 2: sortMode = "lastPlayed"; break;
-            case 3: sortMode = "lengthAsc"; break;
-            case 4: sortMode = "lengthDesc"; break;
+            case 0: sortMode = "default"; break
+            case 1: sortMode = "mostPlayed"; break
+            case 2: sortMode = "lastPlayed"; break
+            case 3: sortMode = "lengthAsc"; break
+            case 4: sortMode = "lengthDesc"; break
             }
         }
 
         background: Rectangle {
-            color: "#404040"
+            color: "#36393F"
             radius: 20
         }
 
@@ -127,7 +123,7 @@ Item {
                     }
 
                     background: Rectangle {
-                        color: hovered ? "#595959" : "#404040"
+                        color: hovered? "#343840" : "#424752"
                         radius: 16
                     }
 
@@ -139,7 +135,7 @@ Item {
             }
 
             background: Rectangle {
-                color: "#404040"
+                color: "#424752"
                 radius: 20
             }
         }
@@ -150,7 +146,7 @@ Item {
         height: 550
         width: 500
         radius: 20
-        color: "#2B2B2B"
+        color: "#36393F"
         anchors.top: searchField.bottom
         anchors.topMargin: 10
 
@@ -170,7 +166,7 @@ Item {
                 width: fileList.width-20
                 height: 40
                 radius: 10
-                color: audioPlayer.curSongList[audioPlayer.curId] === modelData ? "#595959" : "#2B2B2B"
+                color: audioPlayer.curSongList[audioPlayer.curId] === modelData ? "#2E3136" : "#36393F"
 
                 Row {
                     anchors.verticalCenter: parent.verticalCenter
@@ -179,7 +175,7 @@ Item {
                     spacing: 50
 
                     Text { // index
-                        text: index + 1;
+                        text: index + 1
                         width: 5
                         color: root.textColor
                         font.pointSize: root.textSize
@@ -204,14 +200,14 @@ Item {
 
                     Text { // duration
                         text: {
-                            let originalIndex = audioPlayer.filePaths.indexOf(modelData);
+                            let originalIndex = audioPlayer.filePaths.indexOf(modelData)
                             if (originalIndex >= 0 && originalIndex < audioPlayer.fileDurations.length) {
-                                let duration = audioPlayer.fileDurations[originalIndex];
-                                if (duration > 0) return formatTime(duration);
-                                else if (duration === -2) return "Invalid";
-                                else return "Loading...";
+                                let duration = audioPlayer.fileDurations[originalIndex]
+                                if (duration > 0) return formatTime(duration)
+                                else if (duration === -2) return "Invalid"
+                                else return "Loading..."
                             }
-                            return "0:00";
+                            return "0:00"
                         }
                         width: 60
                         color: root.textColor
@@ -222,10 +218,9 @@ Item {
                 MouseArea {
                     width: parent.width - like.x/2
                     height: parent.height
-
                     onClicked: {
-                        audioPlayer.setCurId(filteredFiles.indexOf(modelData));
-                        audioPlayer.togglePlayPause();
+                        audioPlayer.setCurId(filteredFiles.indexOf(modelData))
+                        audioPlayer.togglePlayPause()
                     }
                 }
             }
@@ -250,9 +245,9 @@ Item {
     }
 
     function formatTime(ms) {
-        let seconds = Math.floor(ms / 1000);
-        let minutes = Math.floor(seconds / 60);
-        seconds = seconds % 60;
-        return minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
+        let seconds = Math.floor(ms / 1000)
+        let minutes = Math.floor(seconds / 60)
+        seconds = seconds % 60
+        return minutes + ":" + (seconds < 10 ? "0" + seconds : seconds)
     }
 }

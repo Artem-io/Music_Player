@@ -10,16 +10,12 @@ ApplicationWindow {
     visible: true
     visibility: Window.Maximized
     title: qsTr("Music Player")
-    color: "#4A4A4A"
+    color: "#1E2124"
     property color textColor: "#E6E6E6"
 
-    AudioPlayer {
-        id: audioPlayer
-    }
+    AudioPlayer { id: audioPlayer }
 
-    Side_Bar {
-        id: sideBar
-    }
+    Side_Bar { id: sideBar }
 
     Loader {
         id: contentLoader
@@ -28,11 +24,11 @@ ApplicationWindow {
 
         sourceComponent: {
             switch (sideBar.selectedTab) {
-            case "Library": return libraryComponent;
-            case "Favorites": return likedComponent;
-            case "Playlists": return playlistComponent;
-            case "Settings": return settings;
-            default: return libraryComponent;
+            case "Library": return libraryComponent
+            case "Favorites": return likedComponent
+            case "Playlists": return playlistComponent
+            case "Settings": return settings
+            default: return libraryComponent
             }
         }
     }
@@ -71,7 +67,7 @@ ApplicationWindow {
             width: 500
             y: 20
             radius: 20
-            color: "#2B2B2B"
+            color: "#36393F"
 
             Switch {
                 id: crossfade

@@ -6,10 +6,8 @@ Item {
     id: root
     width: 30
     height: 32
-
     property bool enabled: true
     property alias image: playPauseIcon.source
-
     signal clicked()
 
     Button {

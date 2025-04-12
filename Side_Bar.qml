@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
+import QtQuick.Effects
 
 Item {
     id: root
@@ -18,9 +19,9 @@ Item {
 
     Rectangle {
         id: sideBar
-        color: "#2B2B2B"
-        radius: 20
         anchors.fill: parent
+        color: "#36393F"
+        radius: 20
 
         Column {
             anchors.fill: parent
@@ -33,7 +34,7 @@ Item {
 
                 Button {
                     id: tab
-                    width: parent.width-50
+                    width: parent.width - 50
                     height: 40
                     anchors.horizontalCenter: parent.horizontalCenter
                     scale: root.selectedTab === modelData ? 1.05 : 1.15
@@ -55,7 +56,7 @@ Item {
 
                     background: Rectangle {
                         id: back
-                        color: root.selectedTab === modelData ? "#1F1F1F" : "transparent"
+                        color: root.selectedTab === modelData ? Qt.rgba(0.1, 0.1, 0.1, 0.5) : "transparent"
                         anchors.fill: parent
                         radius: 10
 
@@ -67,9 +68,7 @@ Item {
                     }
 
                     flat: true
-                    onClicked: {
-                        root.selectedTab = modelData
-                    }
+                    onClicked: root.selectedTab = modelData
 
                     Image {
                         id: name
@@ -77,14 +76,14 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         source: {
                             switch(modelData) {
-                            case "Library": return root.selectedTab==="Library"?
+                            case "Library": return root.selectedTab === "Library" ?
                                                 "assets/icons/library_clicked.png" : "assets/icons/library.png"
-                            case "Playlists": return root.selectedTab==="Playlists"?
+                            case "Playlists": return root.selectedTab === "Playlists" ?
                                                   "assets/icons/playlists_clicked.png" : "assets/icons/playlists.png"
-                            case "Settings": return root.selectedTab==="Settings"?
+                            case "Settings": return root.selectedTab === "Settings" ?
                                                  "assets/icons/settings_clicked.png" : "assets/icons/settings.png"
-                            case "Favorites": return root.selectedTab==="Favorites"?
-                                                   "assets/icons/favourites_clicked.png" : "assets/icons/favourites.png"
+                            case "Favorites": return root.selectedTab === "Favorites" ?
+                                                  "assets/icons/favourites_clicked.png" : "assets/icons/favourites.png"
                             }
                         }
                     }

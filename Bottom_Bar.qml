@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
+import QtQuick.Effects
 import AudioPlayer 1.0
 
 Item {
@@ -13,7 +14,7 @@ Item {
     Rectangle {
         id: bottomBar
         anchors.fill: parent
-        color: "#212121"
+        color: "#272A2E"
         property int butWidth: 30
         property int butHeight: 32
 
@@ -22,7 +23,15 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
             anchors.topMargin: 20
-            spacing: 25
+            spacing: 27
+
+            Image_Button {
+                id: autoplay
+                width: bottomBar.butWidth
+                height: bottomBar.butHeight
+                scale: 0.65
+                image: "assets/icons/autoplay.png"
+            }
 
             Image_Button {
                 id: prev
@@ -33,24 +42,40 @@ Item {
 
                 image: enabled? "assets/icons/next.png" : "assets/icons/next_un.png"
                 onClicked: {
-                    audioPlayer.setCurId(audioPlayer.curId - 1);
-                    if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause();
+                    audioPlayer.setCurId(audioPlayer.curId - 1)
+                    if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause()
                 }
             }
 
-            Image_Button {
-                id: playPause
-                enabled: audioPlayer.curSongList.length > 0 && sideBar.selectedTab != "Settings"
+            Item {
                 width: bottomBar.butWidth
                 height: bottomBar.butHeight
-                scale: 1.3
-
-                image: {
-                    if(enabled) audioPlayer.isPlaying ? "assets/icons/pause.png" : "assets/icons/play.png"
-                    else "assets/icons/play_un.png"
+                MultiEffect {
+                    id: glowEffect
+                    anchors.fill: playPause
+                    source: playPause
+                    blurEnabled: playPause.enabled
+                    blurMax: 25
+                    blur: 2.0
+                    colorization: 1.0
+                    colorizationColor: "#E63555"
+                    brightness: audioPlayer.isPlaying ? 0.5 : 0.35
+                    opacity: 1
                 }
 
-                onClicked: audioPlayer.togglePlayPause()
+                Image_Button {
+                    id: playPause
+                    enabled: audioPlayer.curSongList.length > 0 && sideBar.selectedTab != "Settings"
+                    width: bottomBar.butWidth
+                    height: bottomBar.butHeight
+                    scale: 1.4
+
+                    image: {
+                        if(enabled) audioPlayer.isPlaying ? "assets/icons/pause.png" : "assets/icons/play.png"
+                        else "assets/icons/play_un.png"
+                    }
+                    onClicked: audioPlayer.togglePlayPause()
+                }
             }
 
             Image_Button {
@@ -59,31 +84,32 @@ Item {
                          audioPlayer.curSongList.length > 0 && sideBar.selectedTab != "Settings"
                 width: bottomBar.butWidth
                 height: bottomBar.butHeight
-                scale: 0.7
+                scale: 0.8
 
                 image: enabled? "assets/icons/next.png" : "assets/icons/next_un.png"
                 onClicked: {
-                    audioPlayer.setCurId(audioPlayer.curId + 1);
-                    if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause();
+                    audioPlayer.setCurId(audioPlayer.curId + 1)
+                    if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause()
+                }
+            }
+
+            Image_Button {
+                id: shuffle
+                enabled: audioPlayer.curSongList.length > 1
+                width: bottomBar.butWidth
+                height: bottomBar.butHeight
+                scale: autoplay.scale
+                image: enabled? "assets/icons/shuffle.png" : "assets/icons/shuffle_un.png"
+
+                onClicked: {
+                    let randomIndex
+                    do randomIndex = Math.floor(Math.random() * audioPlayer.curSongList.length)
+                    while (randomIndex === audioPlayer.curId)
+                    audioPlayer.setCurId(randomIndex)
+                    audioPlayer.togglePlayPause()
                 }
             }
         }
-
-        // Image_Button {
-        //     id: shuffle
-        //     enabled: audioPlayer.curSongList.length > 1
-        //     width: bottomBar.butWidth
-        //     height: bottomBar.butHeight
-        //     image: enabled? "assets/icons/shuffle.png" : "assets/icons/shuffle_un.png"
-
-        //     onClicked: {
-        //         let randomIndex;
-        //         do randomIndex = Math.floor(Math.random() * audioPlayer.curSongList.length);
-        //         while (randomIndex === audioPlayer.curId)
-        //         audioPlayer.setCurId(randomIndex);
-        //         audioPlayer.togglePlayPause();
-        //     }
-        // }
 
         Slider {
             id: progressSlider
@@ -134,8 +160,8 @@ Item {
                 font.pointSize: 11
                 font.bold: true
                 text: (audioPlayer.curId >= 0 && sideBar.selectedTab != "Settings") ?
-                formatTime(audioPlayer.fileDurations[audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])])
-                : "0:00"
+                          formatTime(audioPlayer.fileDurations[audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])])
+                        : "0:00"
                 anchors.left: progressSlider.right
                 anchors.leftMargin: 10
                 anchors.verticalCenter: progressSlider.verticalCenter
@@ -196,8 +222,8 @@ Item {
                 if (!audioPlayer.isPlaying && audioPlayer.curSongList.length > 0 &&
                         audioPlayer.position >= audioPlayer.fileDurations[audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])] - 100) {
                     if (audioPlayer.curId < audioPlayer.curSongList.length - 1) {
-                        audioPlayer.setCurId(audioPlayer.curId + 1);
-                        audioPlayer.togglePlayPause();
+                        audioPlayer.setCurId(audioPlayer.curId + 1)
+                        audioPlayer.togglePlayPause()
                     }
                 }
             }
@@ -205,9 +231,9 @@ Item {
     }
 
     function formatTime(ms) {
-        let seconds = Math.floor(ms / 1000);
-        let minutes = Math.floor(seconds / 60);
-        seconds = seconds % 60;
-        return minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
+        let seconds = Math.floor(ms / 1000)
+        let minutes = Math.floor(seconds / 60)
+        seconds = seconds % 60
+        return minutes + ":" + (seconds < 10 ? "0" + seconds : seconds)
     }
 }

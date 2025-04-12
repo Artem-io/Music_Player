@@ -53,25 +53,17 @@ Item {
         }
         function onPlaylistsChanged() {
             let currentNames = []
-            for (var i = 0; i < playlistModel.count; i++) {
+            for (var i = 0; i < playlistModel.count; i++)
                 currentNames.push(playlistModel.get(i).name)
-            }
             let newNames = []
-            for (var key in audioPlayer.playlists) {
+            for (var key in audioPlayer.playlists)
                 newNames.push(key)
-            }
 
-            for (var i = playlistModel.count - 1; i >= 0; i--) {
-                if (!newNames.includes(currentNames[i])) {
-                    playlistModel.remove(i)
-                }
-            }
+            for (var i = playlistModel.count - 1; i >= 0; i--)
+                if (!newNames.includes(currentNames[i])) playlistModel.remove(i)
 
-            for (var j = 0; j < newNames.length; j++) {
-                if (!currentNames.includes(newNames[j])) {
-                    playlistModel.append({ "name": newNames[j] })
-                }
-            }
+            for (var j = 0; j < newNames.length; j++)
+                if (!currentNames.includes(newNames[j])) playlistModel.append({ "name": newNames[j] })
         }
     }
 
@@ -143,11 +135,8 @@ Item {
                         let newArr = new Array(audioPlayer.filePaths.length)
                         newArr.fill(false)
                         let currentFiles = audioPlayer.playlists[name]
-                        for (let i = 0; i < audioPlayer.filePaths.length; i++) {
-                            if (currentFiles.includes(audioPlayer.filePaths[i])) {
-                                newArr[i] = true
-                            }
-                        }
+                        for (let i = 0; i < audioPlayer.filePaths.length; i++)
+                            if (currentFiles.includes(audioPlayer.filePaths[i])) newArr[i] = true
                         root.checkedStates = newArr
                         playlistDialog.open()
                     }
@@ -241,16 +230,13 @@ Item {
                     width: parent.width
                     text: modelData.split('/').pop()
                     checked: false
-                    onCheckedChanged: {
+                    onCheckedChanged:
                         if (checked) removeSongDialog.files = removeSongDialog.files.filter(f => f !== modelData)
-                    }
                 }
             }
         }
 
-        onAccepted: {
-            audioPlayer.addPlaylist(playlistName.text, removeSongDialog.files)
-        }
+        onAccepted: audioPlayer.addPlaylist(playlistName.text, removeSongDialog.files)
     }
 
     Dialog {
