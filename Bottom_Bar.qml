@@ -10,6 +10,7 @@ Item {
     height: 100
     anchors.bottom: parent.bottom
     property color textColor: "#D9D9D9"
+    property bool autoplayEnabled: true
 
     Rectangle {
         id: bottomBar
@@ -30,7 +31,8 @@ Item {
                 width: bottomBar.butWidth
                 height: bottomBar.butHeight
                 scale: 0.65
-                image: "assets/icons/autoplay.png"
+                image: root.autoplayEnabled? "assets/icons/autoplay.png" : "assets/icons/autoplay_dis.png"
+                onClicked: autoplayEnabled = !autoplayEnabled
             }
 
             Image_Button {
@@ -54,13 +56,13 @@ Item {
                     id: glowEffect
                     anchors.fill: playPause
                     source: playPause
-                    blurEnabled: playPause.enabled
+                    blurEnabled: true
                     blurMax: 25
                     blur: 2.0
                     colorization: 1.0
                     colorizationColor: "#E63555"
                     brightness: audioPlayer.isPlaying ? 0.5 : 0.35
-                    opacity: 1
+                    opacity: playPause.enabled? 1 : 0
                 }
 
                 Image_Button {
@@ -95,7 +97,7 @@ Item {
 
             Image_Button {
                 id: shuffle
-                enabled: audioPlayer.curSongList.length > 1
+                enabled: audioPlayer.curSongList.length > 1 && sideBar.selectedTab != "Settings"
                 width: bottomBar.butWidth
                 height: bottomBar.butHeight
                 scale: autoplay.scale
@@ -205,9 +207,7 @@ Item {
                     anchors.rightMargin: 20
                     y: -7
 
-                    onClicked: {
-                        audioPlayer.volume? audioPlayer.setVolume(0) : audioPlayer.setVolume(0.2)
-                    }
+                    onClicked: audioPlayer.volume? audioPlayer.setVolume(0) : audioPlayer.setVolume(0.2)
                 }
             }
 
@@ -219,7 +219,7 @@ Item {
         Connections {
             target: audioPlayer
             function onPlayingStateChanged() {
-                if (!audioPlayer.isPlaying && audioPlayer.curSongList.length > 0 &&
+                if (autoplayEnabled && !audioPlayer.isPlaying && audioPlayer.curSongList.length > 0 &&
                         audioPlayer.position >= audioPlayer.fileDurations[audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])] - 100) {
                     if (audioPlayer.curId < audioPlayer.curSongList.length - 1) {
                         audioPlayer.setCurId(audioPlayer.curId + 1)
@@ -231,6 +231,7 @@ Item {
     }
 
     function formatTime(ms) {
+        if (isNaN(ms) || ms <= 0) return "0:00"
         let seconds = Math.floor(ms / 1000)
         let minutes = Math.floor(seconds / 60)
         seconds = seconds % 60

@@ -7,6 +7,7 @@ Item {
     id: root
     width: 500
     height: 530
+    property color textColor: "#E6E6E6"
 
     Image_Button {
         id: addPlaylistButton
@@ -90,7 +91,7 @@ Item {
                 anchors.top: parent.bottom
                 font.pointSize: 12
                 text: name
-                color: "#E6E6E6"
+                color: textColor
                 width: parent.width - 10
                 horizontalAlignment: Text.AlignHCenter
             }
@@ -116,45 +117,76 @@ Item {
                     rightMargin: 10
                     bottomMargin: 10
                 }
-                onClicked: contextMenu.open()
+                onClicked: optionsPopup.open()
             }
 
-            Menu {
-                id: contextMenu
-                x: moreIcon.x
+            Popup {
+                id: optionsPopup
+                x: moreIcon.x - width + moreIcon.width
                 y: moreIcon.y - height
+                width: 150
+                implicitHeight: contentItem.implicitHeight + 10
+                padding: 5
 
-                MenuItem {
-                    text: "Delete"
-                    onTriggered: audioPlayer.removePlaylist(name)
-                }
-                MenuItem {
-                    text: "Add song"
-                    onTriggered: {
-                        playlistName.text = name
-                        let newArr = new Array(audioPlayer.filePaths.length)
-                        newArr.fill(false)
-                        let currentFiles = audioPlayer.playlists[name]
-                        for (let i = 0; i < audioPlayer.filePaths.length; i++)
-                            if (currentFiles.includes(audioPlayer.filePaths[i])) newArr[i] = true
-                        root.checkedStates = newArr
-                        playlistDialog.open()
+                contentItem: ListView {
+                    id: popupList
+                    clip: true
+                    implicitHeight: contentHeight
+                    model: ["Delete", "Add Song", "Remove Song", "Rename"]
+                    spacing: 2
+
+                    delegate: ItemDelegate {
+                        width: parent.width
+                        height: 40
+
+                        contentItem: Text {
+                            text: modelData
+                            color: textColor
+                            font.pointSize: 13
+                            anchors.centerIn: parent
+                        }
+
+                        background: Rectangle {
+                            color: hovered ? "#343840" : "#424752"
+                            radius: 16
+                        }
+
+                        onClicked: {
+                            switch (modelData) {
+                            case "Delete":
+                                audioPlayer.removePlaylist(name)
+                                break
+
+                            case "Add Song":
+                                playlistName.text = name
+                                let newArr = new Array(audioPlayer.filePaths.length)
+                                newArr.fill(false)
+                                let currentFiles = audioPlayer.playlists[name]
+                                for (let i = 0; i < audioPlayer.filePaths.length; i++)
+                                    if (currentFiles.includes(audioPlayer.filePaths[i])) newArr[i] = true
+                                root.checkedStates = newArr
+                                playlistDialog.open()
+                                break
+
+                            case "Remove Song":
+                                removeSongDialog.files = audioPlayer.playlists[name]
+                                removeSongDialog.open()
+                                break
+
+                            case "Rename":
+                                renameDialog.oldName = name
+                                renameDialog.newName = name
+                                renameDialog.open()
+                                break
+                            }
+                            optionsPopup.close()
+                        }
                     }
                 }
-                MenuItem {
-                    text: "Remove song"
-                    onTriggered: {
-                        removeSongDialog.files = audioPlayer.playlists[name]
-                        removeSongDialog.open()
-                    }
-                }
-                MenuItem {
-                    text: "Rename"
-                    onTriggered: {
-                        renameDialog.oldName = name
-                        renameDialog.newName = name
-                        renameDialog.open()
-                    }
+
+                background: Rectangle {
+                    color: "#424752"
+                    radius: 20
                 }
             }
         }

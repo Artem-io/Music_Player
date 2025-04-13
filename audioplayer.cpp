@@ -134,8 +134,6 @@ void AudioPlayer::savePlayData()
     settings.setValue("playCounts", QVariant::fromValue(playCounts));
     settings.setValue("lastPlayed", QVariant::fromValue(lastPlayed));
     settings.endGroup();
-    // qDebug() << "Saved playCounts:" << playCounts;
-    // qDebug() << "Saved lastPlayed:" << lastPlayed;
 }
 
 void AudioPlayer::loadPlayData()
@@ -162,8 +160,6 @@ void AudioPlayer::loadPlayData()
     }
 
     settings.endGroup();
-    // qDebug() << "Loaded playCounts:" << playCounts;
-    // qDebug() << "Loaded lastPlayed:" << lastPlayed;
 }
 
 void AudioPlayer::setPosition(int pos)
