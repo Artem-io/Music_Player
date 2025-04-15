@@ -71,7 +71,6 @@ Item {
                     onClicked: root.selectedTab = modelData
 
                     Image {
-                        id: name
                         scale: 0.45
                         anchors.verticalCenter: parent.verticalCenter
                         source: {

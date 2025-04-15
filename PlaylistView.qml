@@ -144,6 +144,14 @@ Item {
                             color: textColor
                             font.pointSize: 13
                             anchors.centerIn: parent
+                            scale: hovered? 1.05 : 1.0
+
+                            Behavior on scale {
+                                NumberAnimation {
+                                    duration: 120
+                                    easing.type: Easing.InOutQuad
+                                }
+                            }
                         }
 
                         background: Rectangle {

@@ -51,6 +51,7 @@ qt_add_qml_module(appMusic_Player_2
     assets/icons/settings_clicked.png
     assets/icons/favourites.png
     assets/icons/favourites_clicked.png
+    QML_FILES
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

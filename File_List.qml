@@ -97,7 +97,8 @@ Item {
             rightPadding: sortCombo.indicator.width + sortCombo.spacing
         }
 
-        popup: Popup {
+        popup:
+            Popup {
             y: sortCombo.height + 5
             width: sortCombo.width
             implicitHeight: contentItem.implicitHeight + 10
@@ -121,6 +122,14 @@ Item {
                         font.pointSize: 13
                         verticalAlignment: Text.AlignVCenter
                         leftPadding: 15
+                        scale: hovered? 1.05 : 1.0
+
+                        Behavior on scale {
+                            NumberAnimation {
+                                duration: 120
+                                easing.type: Easing.InOutQuad
+                            }
+                        }
                     }
 
                     background: Rectangle {
@@ -154,7 +163,6 @@ Item {
         ListView {
             id: fileList
             model: filteredFiles
-            clip: true
             anchors {
                 fill: parent
                 topMargin: 20
@@ -168,6 +176,13 @@ Item {
                 height: 40
                 radius: 10
                 color: audioPlayer.curSongList[audioPlayer.curId] === modelData ? "#2E3136" : "#36393F"
+                scale: audioPlayer.curSongList[audioPlayer.curId] === modelData ? 1.04 : 1.0
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: 110
+                        easing.type: Easing.InOutQuad
+                    }
+                }
 
                 Row {
                     anchors.verticalCenter: parent.verticalCenter
@@ -217,7 +232,8 @@ Item {
                 }
 
                 MouseArea {
-                    width: parent.width - like.x/2
+                    id: mArea
+                    width: parent.width - 130
                     height: parent.height
                     onClicked: {
                         audioPlayer.setCurId(filteredFiles.indexOf(modelData))
