@@ -30,8 +30,8 @@ qt_add_qml_module(appMusic_Player_2
     assets/icons/next_un.png
     assets/icons/shuffle.png
     assets/icons/shuffle_un.png
-    assets/icons/autoplay.png
-    assets/icons/autoplay_dis.png
+    assets/icons/repeat.png
+    assets/icons/repeat_dis.png
 
     assets/icons/search.png
     assets/icons/volume_full.png

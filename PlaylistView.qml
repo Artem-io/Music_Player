@@ -8,6 +8,13 @@ Item {
     width: 500
     height: 530
     property color textColor: "#E6E6E6"
+    property var checkedStates: {
+        let arr = new Array(audioPlayer.filePaths.length)
+        arr.fill(false)
+        return arr
+    }
+    property bool isEditing: false
+    property string originalPlaylistName: ""
 
     Image_Button {
         id: addPlaylistButton
@@ -22,26 +29,20 @@ Item {
             let newArr = new Array(audioPlayer.filePaths.length)
             newArr.fill(false)
             root.checkedStates = newArr
+            isEditing = false
             playlistDialog.open()
         }
-    }
-
-    property var checkedStates: {
-        let arr = new Array(audioPlayer.filePaths.length)
-        arr.fill(false)
-        return arr
     }
 
     ListModel {
         id: playlistModel
         Component.onCompleted: {
             let initialPlaylists = []
-            for (var key in audioPlayer.playlists) {
+            for (var key in audioPlayer.playlists)
                 initialPlaylists.push(key)
-            }
-            for (var i = 0; i < initialPlaylists.length; i++) {
+
+            for (var i = 0; i < initialPlaylists.length; i++)
                 append({ "name": initialPlaylists[i] })
-            }
         }
     }
 
@@ -52,10 +53,12 @@ Item {
             newArr.fill(false)
             root.checkedStates = newArr
         }
+
         function onPlaylistsChanged() {
             let currentNames = []
             for (var i = 0; i < playlistModel.count; i++)
                 currentNames.push(playlistModel.get(i).name)
+
             let newNames = []
             for (var key in audioPlayer.playlists)
                 newNames.push(key)
@@ -132,7 +135,7 @@ Item {
                     id: popupList
                     clip: true
                     implicitHeight: contentHeight
-                    model: ["Delete", "Add Song", "Remove Song", "Rename"]
+                    model: ["Edit Playlist", "Delete"]
                     spacing: 2
 
                     delegate: ItemDelegate {
@@ -144,7 +147,7 @@ Item {
                             color: textColor
                             font.pointSize: 13
                             anchors.centerIn: parent
-                            scale: hovered? 1.05 : 1.0
+                            scale: hovered ? 1.05 : 1.0
 
                             Behavior on scale {
                                 NumberAnimation {
@@ -162,29 +165,21 @@ Item {
                         onClicked: {
                             switch (modelData) {
                             case "Delete":
-                                audioPlayer.removePlaylist(name)
+                                deleteConfirmationDialog.name = name
+                                deleteConfirmationDialog.open()
                                 break
 
-                            case "Add Song":
+                            case "Edit Playlist":
                                 playlistName.text = name
+                                originalPlaylistName = name
                                 let newArr = new Array(audioPlayer.filePaths.length)
                                 newArr.fill(false)
                                 let currentFiles = audioPlayer.playlists[name]
                                 for (let i = 0; i < audioPlayer.filePaths.length; i++)
                                     if (currentFiles.includes(audioPlayer.filePaths[i])) newArr[i] = true
                                 root.checkedStates = newArr
+                                isEditing = true
                                 playlistDialog.open()
-                                break
-
-                            case "Remove Song":
-                                removeSongDialog.files = audioPlayer.playlists[name]
-                                removeSongDialog.open()
-                                break
-
-                            case "Rename":
-                                renameDialog.oldName = name
-                                renameDialog.newName = name
-                                renameDialog.open()
                                 break
                             }
                             optionsPopup.close()
@@ -201,11 +196,41 @@ Item {
     }
 
     Dialog {
-        id: playlistDialog
-        title: "Create/Edit Playlist"
-        standardButtons: Dialog.Ok | Dialog.Cancel
+        id: deleteConfirmationDialog
+        title: "Delete playlist?"
         modal: true
         anchors.centerIn: parent
+        property string name: ""
+
+        Row {
+            spacing: 10
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            Button {
+                text: "Yes"
+                font.pointSize: 11
+                flat: true
+                onClicked: {
+                    audioPlayer.removePlaylist(deleteConfirmationDialog.name)
+                    deleteConfirmationDialog.accept()
+                }
+            }
+
+            Button {
+                text: "No"
+                font.pointSize: 11
+                flat: true
+                onClicked: deleteConfirmationDialog.reject()
+            }
+        }
+    }
+
+    Dialog {
+        id: playlistDialog
+        title: isEditing ? "Edit Playlist" : "Create Playlist"
+        modal: true
+        anchors.centerIn: parent
+        property bool showError: false
 
         Column {
             spacing: 10
@@ -215,6 +240,16 @@ Item {
                 id: playlistName
                 width: parent.width
                 placeholderText: "Playlist Name"
+                onTextChanged: playlistDialog.showError = false
+            }
+
+            Text {
+                id: errorText
+                width: parent.width
+                text: "Please enter a playlist name."
+                color: "red"
+                font.pointSize: 10
+                visible: playlistDialog.showError
             }
 
             ListView {
@@ -231,77 +266,50 @@ Item {
                     onCheckedChanged: if (index < root.checkedStates.length) root.checkedStates[index] = checked
                 }
             }
-        }
 
-        onAccepted: {
-            let selectedFiles = []
-            for (let i = 0; i < audioPlayer.filePaths.length; i++)
-                if (root.checkedStates[i]) selectedFiles.push(audioPlayer.filePaths[i])
+            Row {
+                spacing: 10
+                anchors.horizontalCenter: parent.horizontalCenter
 
-            if (playlistName.text && selectedFiles.length > 0) {
-                audioPlayer.addPlaylist(playlistName.text, selectedFiles)
-                let newArr = new Array(audioPlayer.filePaths.length)
-                newArr.fill(false)
-                root.checkedStates = newArr
-            }
-        }
-    }
+                Button {
+                    text: "OK"
+                    flat: true
+                    onClicked: {
+                        let selectedFiles = []
+                        for (let i = 0; i < audioPlayer.filePaths.length; i++)
+                            if (root.checkedStates[i]) selectedFiles.push(audioPlayer.filePaths[i])
 
-    Dialog {
-        id: removeSongDialog
-        title: "Remove Song"
-        standardButtons: Dialog.Ok | Dialog.Cancel
-        modal: true
-        anchors.centerIn: parent
+                        if (!playlistName.text) {
+                            playlistDialog.showError = true
+                            return
+                        }
 
-        property var files: []
-
-        Column {
-            spacing: 10
-            width: 300
-
-            ListView {
-                width: parent.width
-                height: 200
-                model: removeSongDialog.files
-                clip: true
-
-                delegate: CheckDelegate {
-                    width: parent.width
-                    text: modelData.split('/').pop()
-                    checked: false
-                    onCheckedChanged:
-                        if (checked) removeSongDialog.files = removeSongDialog.files.filter(f => f !== modelData)
+                        if (selectedFiles.length > 0) {
+                            if (isEditing && originalPlaylistName !== "") {
+                                audioPlayer.removePlaylist(originalPlaylistName)
+                                audioPlayer.addPlaylist(playlistName.text, selectedFiles)
+                            }
+                            else audioPlayer.addPlaylist(playlistName.text, selectedFiles)
+                            let newArr = new Array(audioPlayer.filePaths.length)
+                            newArr.fill(false)
+                            root.checkedStates = newArr
+                            isEditing = false
+                            originalPlaylistName = ""
+                            playlistDialog.accept()
+                        }
+                    }
                 }
-            }
-        }
 
-        onAccepted: audioPlayer.addPlaylist(playlistName.text, removeSongDialog.files)
-    }
-
-    Dialog {
-        id: renameDialog
-        title: "Rename Playlist"
-        standardButtons: Dialog.Ok | Dialog.Cancel
-        modal: true
-        anchors.centerIn: parent
-
-        property string oldName: ""
-        property string newName: ""
-
-        TextField {
-            id: renameField
-            width: 300
-            text: renameDialog.newName
-            placeholderText: "New Playlist Name"
-            onTextChanged: renameDialog.newName = text
-        }
-
-        onAccepted: {
-            if (renameDialog.newName && renameDialog.newName !== renameDialog.oldName) {
-                let playlistFiles = audioPlayer.playlists[renameDialog.oldName]
-                audioPlayer.removePlaylist(renameDialog.oldName)
-                audioPlayer.addPlaylist(renameDialog.newName, playlistFiles)
+                Button {
+                    text: "Cancel"
+                    flat: true
+                    onClicked: {
+                        isEditing = false
+                        originalPlaylistName = ""
+                        playlistDialog.showError = false
+                        playlistDialog.reject()
+                    }
+                }
             }
         }
     }

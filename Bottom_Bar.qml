@@ -10,7 +10,7 @@ Item {
     height: 100
     anchors.bottom: parent.bottom
     property color textColor: "#D9D9D9"
-    property bool autoplayEnabled: true
+    property bool repeatEnabled: false
 
     Rectangle {
         id: bottomBar
@@ -27,12 +27,12 @@ Item {
             spacing: 27
 
             Image_Button {
-                id: autoplay
+                id: repeat
                 width: bottomBar.butWidth
                 height: bottomBar.butHeight
                 scale: 0.65
-                image: root.autoplayEnabled? "assets/icons/autoplay.png" : "assets/icons/autoplay_dis.png"
-                onClicked: autoplayEnabled = !autoplayEnabled
+                image: root.repeatEnabled? "assets/icons/repeat.png" : "assets/icons/repeat_dis.png"
+                onClicked: repeatEnabled = !repeatEnabled
             }
 
             Image_Button {
@@ -100,7 +100,7 @@ Item {
                 enabled: audioPlayer.curSongList.length > 1 && sideBar.selectedTab != "Settings"
                 width: bottomBar.butWidth
                 height: bottomBar.butHeight
-                scale: autoplay.scale
+                scale: repeat.scale
                 image: enabled? "assets/icons/shuffle.png" : "assets/icons/shuffle_un.png"
 
                 onClicked: {
@@ -219,9 +219,10 @@ Item {
         Connections {
             target: audioPlayer
             function onPlayingStateChanged() {
-                if (autoplayEnabled && !audioPlayer.isPlaying && audioPlayer.curSongList.length > 0 &&
+                if (!audioPlayer.isPlaying && audioPlayer.curSongList.length > 0 &&
                         audioPlayer.position >= audioPlayer.fileDurations[audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])] - 100) {
-                    if (audioPlayer.curId < audioPlayer.curSongList.length - 1) {
+                    if (repeatEnabled) audioPlayer.togglePlayPause()
+                    else if (audioPlayer.curId < audioPlayer.curSongList.length - 1) {
                         audioPlayer.setCurId(audioPlayer.curId + 1)
                         audioPlayer.togglePlayPause()
                     }
