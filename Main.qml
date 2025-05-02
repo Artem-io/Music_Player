@@ -31,6 +31,13 @@ ApplicationWindow {
             default: return libraryComponent
             }
         }
+
+        onLoaded: {
+            if (sideBar.selectedTab === "Library") audioPlayer.setCurSongList(audioPlayer.filePaths)
+            else if (sideBar.selectedTab === "Favorites")
+                audioPlayer.setCurSongList(audioPlayer.favourites)
+            //else if (sideBar.selectedTab === "Playlists")
+        }
     }
 
     Component {
@@ -38,8 +45,6 @@ ApplicationWindow {
         File_List {
             id: library
             baseSource: audioPlayer.filePaths
-            Component.onCompleted: audioPlayer.setCurSongList(filteredFiles)
-            onFilteredFilesChanged: audioPlayer.setCurSongList(filteredFiles)
         }
     }
 
@@ -48,8 +53,6 @@ ApplicationWindow {
         File_List {
             id: liked
             baseSource: audioPlayer.favourites
-            Component.onCompleted: audioPlayer.setCurSongList(filteredFiles)
-            onFilteredFilesChanged: audioPlayer.setCurSongList(filteredFiles)
         }
     }
 
@@ -81,7 +84,7 @@ ApplicationWindow {
                 }
 
                 anchors {
-                    top: parent. top
+                    top: parent.top
                     left: parent.left
                     topMargin: 20
                     leftMargin: 20

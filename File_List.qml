@@ -42,6 +42,29 @@ Item {
         }
     }
 
+    onFilteredFilesChanged: {
+        let currentSong = audioPlayer.curId >= 0 && audioPlayer.curId < audioPlayer.curSongList.length ?
+                          audioPlayer.curSongList[audioPlayer.curId] : ""
+
+        if (filteredFiles.length > 0) {
+            audioPlayer.setCurSongList(filteredFiles)
+            if (currentSong && filteredFiles.includes(currentSong)) {
+                let newIndex = filteredFiles.indexOf(currentSong)
+                if (newIndex !== audioPlayer.curId) {
+                    audioPlayer.curId = newIndex
+                    audioPlayer.curIdChanged()
+                }
+            }
+            else if (audioPlayer.curId >= filteredFiles.length) audioPlayer.setCurId(0)
+        }
+        else {
+            if (!(audioPlayer.isPlaying && currentSong)) {
+                audioPlayer.setCurSongList([]);
+                audioPlayer.setCurId(-1);
+            }
+        }
+    }
+
     TextField {
         id: searchField
         width: parent.width-200
@@ -56,7 +79,9 @@ Item {
             border.color: "transparent"
         }
 
-        onTextChanged: searchQuery = text
+        onTextChanged: {
+            searchQuery = text
+        }
     }
 
     ComboBox {
@@ -97,8 +122,7 @@ Item {
             rightPadding: sortCombo.indicator.width + sortCombo.spacing
         }
 
-        popup:
-            Popup {
+        popup: Popup {
             y: sortCombo.height + 5
             width: sortCombo.width
             implicitHeight: contentItem.implicitHeight + 10
@@ -171,12 +195,21 @@ Item {
                 rightMargin: 15
             }
 
+            Text {
+                anchors.centerIn: parent
+                text: "No results found"
+                color: root.textColor
+                font.pointSize: root.textSize + 2
+                visible: filteredFiles.length === 0
+            }
+
             delegate: Rectangle {
                 width: fileList.width-20
                 height: 40
                 radius: 10
                 color: audioPlayer.curSongList[audioPlayer.curId] === modelData ? "#2E3136" : "#36393F"
                 scale: audioPlayer.curSongList[audioPlayer.curId] === modelData ? 1.04 : 1.0
+
                 Behavior on scale {
                     NumberAnimation {
                         duration: 110
@@ -236,8 +269,9 @@ Item {
                     width: parent.width - 130
                     height: parent.height
                     onClicked: {
+                        audioPlayer.setCurSongList(filteredFiles)
                         audioPlayer.setCurId(filteredFiles.indexOf(modelData))
-                        audioPlayer.togglePlayPause()
+                        if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause()
                     }
                 }
             }

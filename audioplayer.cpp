@@ -17,7 +17,7 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), curId(-1)
     loadFavourites();
     loadPlaylists();
     loadPlayData();
-    curSongList=filePaths;
+    curSongList = filePaths;
 }
 
 void AudioPlayer::setFiles(const QStringList& fileUrls)
@@ -66,7 +66,8 @@ void AudioPlayer::setCurId(int id)
 {
     if (curId != id && id >= 0 && id < curSongList.size()) {
         curId = id;
-        player->setSource(QUrl::fromLocalFile(curSongList[curId]));
+        QUrl newSource = QUrl::fromLocalFile(curSongList[curId]);
+        if (player->source() != newSource) player->setSource(newSource);
         playCounts[curSongList[curId]] = playCounts.value(curSongList[curId], 0) + 1;
         lastPlayed[curSongList[curId]] = QDateTime::currentDateTime();
         savePlayData();
@@ -84,7 +85,9 @@ void AudioPlayer::setCurSongList(const QStringList& playlist)
 
 void AudioPlayer::togglePlayPause()
 {
-    if (player->playbackState() == QMediaPlayer::PlayingState) player->pause();
+    if (player->playbackState() == QMediaPlayer::PlayingState) {
+        player->pause();
+    }
     else {
         player->play();
         if (curId >= 0 && curId < curSongList.size()) {

@@ -103,7 +103,7 @@ Item {
                 anchors.fill: parent
                 onClicked: {
                     playlistFilesView.files = audioPlayer.playlists[name]
-                    audioPlayer.setCurSongList(playlistFilesView.filteredFiles)
+                    audioPlayer.setCurSongList(audioPlayer.playlists[name])
                     playlistFilesView.visible = true
                     playlistFilesView.searchQuery = ""
                 }
@@ -320,22 +320,5 @@ Item {
         anchors.fill: parent
         baseSource: files
         property var files: []
-        onFilteredFilesChanged: audioPlayer.setCurSongList(filteredFiles)
-
-        Image_Button {
-            id: backButton
-            image: "assets/icons/back.png"
-            anchors {
-                right: parent.left
-                rightMargin: 15
-                top: parent.top
-                topMargin: 5
-            }
-            onClicked: {
-                playlistFilesView.visible = false
-                audioPlayer.setCurSongList(audioPlayer.filePaths)
-                playlistFilesView.searchQuery = ""
-            }
-        }
     }
 }

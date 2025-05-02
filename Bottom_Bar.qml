@@ -108,7 +108,7 @@ Item {
                     do randomIndex = Math.floor(Math.random() * audioPlayer.curSongList.length)
                     while (randomIndex === audioPlayer.curId)
                     audioPlayer.setCurId(randomIndex)
-                    audioPlayer.togglePlayPause()
+                    if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause()
                 }
             }
         }
@@ -120,7 +120,7 @@ Item {
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 20
             from: 0
-            to: audioPlayer.curId >= 0 ?
+            to: audioPlayer.curId >= 0 && audioPlayer.curId < audioPlayer.curSongList.length ?
                     audioPlayer.fileDurations[audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])] : 0
             value: audioPlayer.position >= 0 ? audioPlayer.position : 0
             onMoved: audioPlayer.setPosition(value)
@@ -161,7 +161,7 @@ Item {
                 color: textColor
                 font.pointSize: 11
                 font.bold: true
-                text: (audioPlayer.curId >= 0 && sideBar.selectedTab != "Settings") ?
+                text: audioPlayer.curId >= 0 && audioPlayer.curId < audioPlayer.curSongList.length ?
                           formatTime(audioPlayer.fileDurations[audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])])
                         : "0:00"
                 anchors.left: progressSlider.right
