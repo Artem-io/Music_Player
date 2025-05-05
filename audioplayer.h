@@ -32,6 +32,7 @@ class AudioPlayer: public QObject
     int curId;
     PlayCountMap playCounts;
     LastPlayedMap lastPlayed;
+    bool m_crossfadeEnabled;
 
     Q_PROPERTY(QStringList filePaths READ getFilePaths NOTIFY filePathsChanged)
     Q_PROPERTY(QList<int> fileDurations READ getFileDurations NOTIFY fileDurationsChanged)
@@ -42,6 +43,7 @@ class AudioPlayer: public QObject
     Q_PROPERTY(QStringList favourites READ getFavourites NOTIFY favouritesChanged)
     Q_PROPERTY(QVariantMap playlists READ getPlaylists NOTIFY playlistsChanged)
     Q_PROPERTY(QStringList curSongList READ getCurSongList WRITE setCurSongList NOTIFY curSongListChanged)
+    Q_PROPERTY(bool crossfadeEnabled READ crossfadeEnabled NOTIFY crossfadeStateChanged)
 
 public:
     explicit AudioPlayer(QObject *parent = nullptr);
@@ -55,6 +57,7 @@ public:
     QStringList getFavourites() { return favourites; }
     QVariantMap getPlaylists() { return playlists; }
     QStringList getCurSongList() { return curSongList; }
+    bool crossfadeEnabled() const { return m_crossfadeEnabled; }
 
 public slots:
     void setFiles(const QStringList&);
@@ -71,6 +74,8 @@ public slots:
     QStringList sortMost();
     QStringList sortLast();
     QStringList sortLength(bool);
+    void setCrossfadeEnabled(bool enabled);
+    void stop();
 
 signals:
     void filePathsChanged();
@@ -82,6 +87,7 @@ signals:
     void favouritesChanged();
     void playlistsChanged();
     void curSongListChanged();
+    void crossfadeStateChanged();
 
 private:
     void saveFilePaths(const QStringList&);

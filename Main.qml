@@ -3,15 +3,16 @@ import QtQuick.Dialogs
 import QtQuick.Controls.Material
 import AudioPlayer 1.0
 
-ApplicationWindow {
+Window {
     id: root
-    width: 1920
-    height: 1080
+    width: 1536
+    height: 793
     visible: true
     visibility: Window.Maximized
     title: qsTr("Music Player")
     color: "#1E2124"
     property color textColor: "#E6E6E6"
+    property real scaleFactor: Window.width/1536
 
     AudioPlayer { id: audioPlayer }
 
@@ -21,6 +22,8 @@ ApplicationWindow {
         id: contentLoader
         anchors.bottom: bottomBar.top
         anchors.horizontalCenter: parent.horizontalCenter
+        // width: 500 * scaleFactor
+        // height: 530 * scaleFactor
 
         sourceComponent: {
             switch (sideBar.selectedTab) {
@@ -36,7 +39,6 @@ ApplicationWindow {
             if (sideBar.selectedTab === "Library") audioPlayer.setCurSongList(audioPlayer.filePaths)
             else if (sideBar.selectedTab === "Favorites")
                 audioPlayer.setCurSongList(audioPlayer.favourites)
-            //else if (sideBar.selectedTab === "Playlists")
         }
     }
 
@@ -65,6 +67,7 @@ ApplicationWindow {
 
     Component {
         id: settings
+
         Rectangle {
             height: 550
             width: 500
@@ -74,6 +77,7 @@ ApplicationWindow {
 
             Switch {
                 id: crossfade
+                checked: audioPlayer.crossfadeEnabled // Bind to audioPlayer.crossfadeEnabled
                 Text {
                     anchors.left: parent.right
                     anchors.leftMargin: 10
@@ -88,6 +92,10 @@ ApplicationWindow {
                     left: parent.left
                     topMargin: 20
                     leftMargin: 20
+                }
+
+                onCheckedChanged: {
+                    audioPlayer.setCrossfadeEnabled(checked) // Update audioPlayer.crossfadeEnabled
                 }
             }
         }

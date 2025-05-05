@@ -6,14 +6,16 @@ import AudioPlayer 1.0
 
 Item {
     id: root
-    width: 500
-    height: 530
+    width: 500 //* widthFactor //changed
+    height: 530 //* heightFactor / 793 //changed
 
     property int textSize: 11
     property color textColor: "#E6E6E6"
     property string searchQuery: ""
     property string sortMode: "default"
     property var baseSource: audioPlayer.filePaths
+    property real widthFactor: Window.width / 1536
+    property real heightFactor: Window.height / 793
 
     property var filteredFiles: {
         let baseList
@@ -86,10 +88,10 @@ Item {
 
     ComboBox {
         id: sortCombo
-        width: parent.width-searchField.width-15
+        width: (root.width-315) //* widthFactor
         height: searchField.height
         anchors.left: searchField.right
-        anchors.leftMargin: 15
+        anchors.leftMargin: 15 //* widthFactor //changed
         model: [
             "Default",
             "Most Played",
@@ -178,7 +180,7 @@ Item {
     Rectangle {
         id: roundCorners
         height: 550
-        width: 500
+        width: parent.width
         radius: 20
         color: "#36393F"
         anchors.top: searchField.bottom

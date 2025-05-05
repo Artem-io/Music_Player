@@ -27,6 +27,7 @@ Item {
             color: "transparent"
         }
         onClicked: {
+            //console.log("Max Width: " + Window.width + " Max Height: " + Window.height)
             if(root.enabled) {
                 playPauseAnimation.start()
                 root.clicked()

@@ -5,16 +5,17 @@ import QtQuick.Effects
 
 Item {
     id: root
-    width: 250
-    height: 500
+    width: Math.max(200, parent.width * 0.15)
+    height: Math.min(500, parent.height * 0.6)
     property string selectedTab: "Library"
     property color textColor: "#E6E6E6"
+    property real widthFactor: Window.width / 1536
 
     anchors {
         bottom: bottomBar.top
         bottomMargin: 30
         left: parent.left
-        leftMargin: 30
+        leftMargin: 30 * widthFactor * widthFactor * widthFactor
     }
 
     Rectangle {
