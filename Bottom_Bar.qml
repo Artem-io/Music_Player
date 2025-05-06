@@ -16,6 +16,13 @@ Item {
     property string currentPlayer: "audioPlayer"
     property bool crossfadeStarted: false
     property real userVolume: 0.2
+    property alias player2: player2
+    property alias audioOutput2: audioOutput2
+    property alias fadeOutAudioPlayer: fadeOutAudioPlayer
+    property alias fadeInAudioPlayer: fadeInAudioPlayer
+    property alias fadeInPlayer2: fadeInPlayer2
+    property alias fadeOutPlayer2: fadeOutPlayer2
+    property bool repeatEnabled: false
 
     MediaPlayer {
         id: player2
@@ -39,6 +46,7 @@ Item {
                 if (audioPlayer.curId +1 < audioPlayer.curSongList.length) {
                     audioPlayer.setCurId(audioPlayer.curId + 1)
                     currentPlayer = "player2"
+                    //console.log("Stopped")
                     crossfadeStarted = false
                 }
             }
@@ -79,6 +87,7 @@ Item {
                 if (audioPlayer.curId +1 < audioPlayer.curSongList.length) {
                     player2.source = audioPlayer.curSongList[audioPlayer.curId + 1]
                     currentPlayer = "audioPlayer"
+                    //console.log("Stopped")
                     crossfadeStarted = false
                 }
             }
@@ -100,6 +109,18 @@ Item {
             spacing: 27 * widthFactor
 
             Image_Button {
+                id: repeat
+                width: bottomBar.butWidth
+                height: bottomBar.butHeight
+                scale: 0.65
+                image: root.repeatEnabled? "assets/icons/repeat.png" : "assets/icons/repeat_dis.png"
+                onClicked: {
+                    crossfadeStarted = false
+                    repeatEnabled = !repeatEnabled
+                }
+            }
+
+            Image_Button {
                 id: prev
                 enabled: audioPlayer.curId > 0
                 width: bottomBar.butWidth
@@ -107,12 +128,29 @@ Item {
                 scale: -next.scale
                 image: enabled ? "assets/icons/next.png" : "assets/icons/next_un.png"
                 onClicked: {
-                    audioPlayer.setCurId(audioPlayer.curId - 1)
-                    if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause()
-                    player2.stop()
-                    audioOutput1.volume = 0.2
-                    audioOutput2.volume = 0
-                    currentPlayer = "audioPlayer"
+                    let newId
+                    if(crossfadeStarted) {
+                        currentPlayer === "audioPlayer"? newId = audioPlayer.curId-1 : newId = audioPlayer.curId-2
+                    }
+                    else newId = audioPlayer.curId-1
+                    fadeOutAudioPlayer.stop()
+                    fadeInPlayer2.stop()
+                    fadeOutPlayer2.stop()
+                    fadeInAudioPlayer.stop()
+                    audioPlayer.setCurId(newId)
+                    if (currentPlayer === "audioPlayer") {
+                        if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause()
+                        player2.stop()
+                        audioPlayer.setVolume(root.userVolume)
+                        audioOutput2.volume = 0
+                    }
+                    else {
+                        player2.source = audioPlayer.curSongList[newId]
+                        if (!player2.playing) player2.play()
+                        audioPlayer.stop()
+                        audioOutput2.volume = root.userVolume
+                        audioPlayer.setVolume(0)
+                    }
                     crossfadeStarted = false
                 }
             }
@@ -159,13 +197,63 @@ Item {
                 scale: 0.8
                 image: enabled ? "assets/icons/next.png" : "assets/icons/next_un.png"
                 onClicked: {
-                    audioPlayer.setCurId(audioPlayer.curId + 1)
-                    if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause()
-                    player2.stop()
-                    audioOutput1.volume = 0.2
-                    audioOutput2.volume = 0
-                    currentPlayer = "audioPlayer"
+                    let newId
+                    if(crossfadeStarted) {
+                        currentPlayer === "audioPlayer"? newId = audioPlayer.curId+1 : newId = audioPlayer.curId
+                    }
+                    else newId = audioPlayer.curId+1
+                    fadeOutAudioPlayer.stop()
+                    fadeInPlayer2.stop()
+                    fadeOutPlayer2.stop()
+                    fadeInAudioPlayer.stop()
+                    audioPlayer.setCurId(newId)
+                    if (currentPlayer === "audioPlayer") {
+                        if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause()
+                        player2.stop()
+                        audioPlayer.setVolume(root.userVolume)
+                        audioOutput2.volume = 0
+                    } else {
+                        player2.source = audioPlayer.curSongList[newId]
+                        if (!player2.playing) player2.play()
+                        audioPlayer.stop()
+                        audioOutput2.volume = root.userVolume
+                        audioPlayer.setVolume(0)
+                    }
                     crossfadeStarted = false
+                }
+            }
+
+            Image_Button {
+                id: shuffle
+                enabled: audioPlayer.curSongList.length > 0
+                width: bottomBar.butWidth
+                height: bottomBar.butHeight
+                scale: 0.65
+                image: enabled ? "assets/icons/shuffle.png" : "assets/icons/shuffle_un.png"
+                onClicked: {
+                    if (audioPlayer.curSongList.length > 0) {
+                        fadeOutAudioPlayer.stop()
+                        fadeInAudioPlayer.stop()
+                        fadeInPlayer2.stop()
+                        fadeOutPlayer2.stop()
+                        crossfadeStarted = false
+                        let randomIndex = Math.floor(Math.random() * audioPlayer.curSongList.length)
+                        while (randomIndex === audioPlayer.curId) randomIndex = Math.floor(Math.random() * audioPlayer.curSongList.length)
+                        audioPlayer.setCurId(randomIndex)
+                        if (currentPlayer === "audioPlayer") {
+                            if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause()
+                            player2.stop()
+                            audioPlayer.setVolume(root.userVolume)
+                            audioOutput2.volume = 0
+                        }
+                        else {
+                            player2.source = audioPlayer.curSongList[randomIndex]
+                            if (!player2.playing) player2.play()
+                            audioPlayer.stop()
+                            audioOutput2.volume = root.userVolume
+                            audioPlayer.setVolume(0)
+                        }
+                    }
                 }
             }
         }
@@ -189,9 +277,9 @@ Item {
             }
             value: currentPlayer === "audioPlayer" ? audioPlayer.position : player2.position
             onMoved: {
+                crossfadeStarted = false
                 if (currentPlayer === "audioPlayer") audioPlayer.setPosition(value)
                 else player2.position = value
-                crossfadeStarted = false
             }
 
             background: Rectangle {
@@ -245,23 +333,31 @@ Item {
                         let index = audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])
                         let duration = index >= 0 ? audioPlayer.fileDurations[index] : 0
                         let remainingTime = (duration - audioPlayer.position) / 1000
-                        if (remainingTime <= 5 && audioPlayer.curId + 1 < audioPlayer.curSongList.length) {
+                        if (remainingTime <= 5 && !repeatEnabled && audioPlayer.curId + 1 < audioPlayer.curSongList.length) {
+                            //console.log("Started")
                             crossfadeStarted = true
                             player2.source = audioPlayer.curSongList[audioPlayer.curId + 1]
                             player2.play()
                             fadeOutAudioPlayer.start()
                             fadeInPlayer2.start()
                         }
+                        else if(remainingTime <= 0.3) {
+                            audioPlayer.setPosition(0)
+                        }
                     }
                 }
                 else {
                     let remainingTime = (player2.duration - player2.position) / 1000
-                    if (remainingTime <= 5 && audioPlayer.curId + 1 < audioPlayer.curSongList.length) {
+                    if (remainingTime <= 5 && !repeatEnabled && audioPlayer.curId + 1 < audioPlayer.curSongList.length) {
+                        //console.log("Started")
                         crossfadeStarted = true
                         audioPlayer.setCurId(audioPlayer.curId + 1)
                         audioPlayer.togglePlayPause()
                         fadeOutPlayer2.start()
                         fadeInAudioPlayer.start()
+                    }
+                    else if(remainingTime <= 0.3) {
+                        player2.position=0
                     }
                 }
             }

@@ -2,7 +2,6 @@
 
 AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), curId(-1), m_crossfadeEnabled(false)
 {
-    qDebug() << "AudioPlayer: Constructor called";
     audioOutput = new QAudioOutput(this);
     player = new QMediaPlayer(this);
     player->setAudioOutput(audioOutput);
@@ -65,7 +64,6 @@ void AudioPlayer::setFiles(const QStringList& fileUrls)
         emit fileDurationsChanged();
         emit curIdChanged();
         emit curSongListChanged();
-        qDebug() << "AudioPlayer: Set curId to 0, curSongList size:" << curSongList.size();
     }
     else {
         curId = -1;
@@ -74,7 +72,6 @@ void AudioPlayer::setFiles(const QStringList& fileUrls)
         emit fileDurationsChanged();
         emit curIdChanged();
         emit curSongListChanged();
-        qDebug() << "AudioPlayer: No valid files, cleared lists";
     }
 }
 
@@ -88,7 +85,6 @@ void AudioPlayer::setCurId(int id)
         lastPlayed[curSongList[curId]] = QDateTime::currentDateTime();
         savePlayData();
         emit curIdChanged();
-        qDebug() << "AudioPlayer: setCurId to" << id << ", source:" << newSource.toString();
     }
 }
 
@@ -97,7 +93,6 @@ void AudioPlayer::setCurSongList(const QStringList& playlist)
     if (curSongList != playlist) {
         curSongList = playlist;
         emit curSongListChanged();
-        qDebug() << "AudioPlayer: setCurSongList, new size:" << curSongList.size();
     }
 }
 
@@ -105,30 +100,28 @@ void AudioPlayer::togglePlayPause()
 {
     if (player->playbackState() == QMediaPlayer::PlayingState) {
         player->pause();
-        qDebug() << "AudioPlayer: togglePlayPause - Paused";
+        qDebug()<<"Stop playing on audio";
     }
     else {
+        qDebug()<<"Starting playing on audio";
         player->play();
         if (curId >= 0 && curId < curSongList.size()) {
             playCounts[curSongList[curId]] = playCounts.value(curSongList[curId], 0) + 1;
             lastPlayed[curSongList[curId]] = QDateTime::currentDateTime();
             savePlayData();
         }
-        qDebug() << "AudioPlayer: togglePlayPause - Playing, curId:" << curId;
     }
     emit playingStateChanged();
 }
 
 void AudioPlayer::stop()
 {
-    qDebug() << "AudioPlayer: stop called";
     player->stop();
     emit playingStateChanged();
 }
 
 QStringList AudioPlayer::sortMost()
 {
-    qDebug() << "AudioPlayer: sortMost called";
     QStringList sortedList = filePaths;
     std::sort(sortedList.begin(), sortedList.end(), [&](const QString& a, const QString& b) {
         return playCounts.value(a, 0) > playCounts.value(b, 0);
@@ -138,7 +131,6 @@ QStringList AudioPlayer::sortMost()
 
 QStringList AudioPlayer::sortLast()
 {
-    qDebug() << "AudioPlayer: sortLast called";
     QStringList sortedList = filePaths;
     std::sort(sortedList.begin(), sortedList.end(), [&](const QString& a, const QString& b) {
         return lastPlayed.value(a, QDateTime()) > lastPlayed.value(b, QDateTime());
@@ -148,7 +140,6 @@ QStringList AudioPlayer::sortLast()
 
 QStringList AudioPlayer::sortLength(bool ascending)
 {
-    qDebug() << "AudioPlayer: sortLength called, ascending:" << ascending;
     QStringList sortedList = filePaths;
     std::sort(sortedList.begin(), sortedList.end(), [&](const QString& a, const QString& b) {
         int indexA = filePaths.indexOf(a);
@@ -162,7 +153,6 @@ QStringList AudioPlayer::sortLength(bool ascending)
 
 void AudioPlayer::savePlayData()
 {
-    qDebug() << "AudioPlayer: savePlayData called";
     QSettings settings;
     settings.beginGroup("playData");
     settings.setValue("playCounts", QVariant::fromValue(playCounts));
@@ -172,7 +162,6 @@ void AudioPlayer::savePlayData()
 
 void AudioPlayer::loadPlayData()
 {
-    qDebug() << "AudioPlayer: loadPlayData called";
     QSettings settings;
     settings.beginGroup("playData");
 
@@ -182,7 +171,6 @@ void AudioPlayer::loadPlayData()
     }
     else {
         playCounts.clear();
-        qDebug() << "AudioPlayer: playCounts not found";
     }
 
     QVariant lastPlayedVariant = settings.value("lastPlayed");
@@ -191,7 +179,6 @@ void AudioPlayer::loadPlayData()
     }
     else {
         lastPlayed.clear();
-        qDebug() << "AudioPlayer: lastPlayed not found";
     }
 
     settings.endGroup();
@@ -199,35 +186,30 @@ void AudioPlayer::loadPlayData()
 
 void AudioPlayer::setPosition(int pos)
 {
-    qDebug() << "AudioPlayer: setPosition called with pos:" << pos;
     player->setPosition(pos);
     emit positionChanged(pos);
 }
 
 void AudioPlayer::setVolume(float vol)
 {
-    qDebug() << "AudioPlayer: setVolume called with vol:" << vol;
     audioOutput->setVolume(vol);
     emit volumeChanged();
 }
 
 void AudioPlayer::loadLastFiles()
 {
-    qDebug() << "AudioPlayer: loadLastFiles called";
     QStringList lastFiles = getLastFilePaths();
     if (!lastFiles.isEmpty()) setFiles(lastFiles);
 }
 
 void AudioPlayer::saveFilePaths(const QStringList &filePaths)
 {
-    qDebug() << "AudioPlayer: saveFilePaths called with" << filePaths.size() << "files";
     QSettings settings;
     settings.setValue("lastFiles", filePaths);
 }
 
 QStringList AudioPlayer::getLastFilePaths()
 {
-    qDebug() << "AudioPlayer: getLastFilePaths called";
     QSettings settings;
     QStringList lastFiles = settings.value("lastFiles", QStringList()).toStringList();
     return lastFiles;
@@ -235,7 +217,6 @@ QStringList AudioPlayer::getLastFilePaths()
 
 void AudioPlayer::toggleFavourite(const QString& filePath)
 {
-    qDebug() << "AudioPlayer: toggleFavourite called for" << filePath;
     if (favourites.contains(filePath)) favourites.removeAll(filePath);
     else favourites.append(filePath);
 
@@ -245,21 +226,18 @@ void AudioPlayer::toggleFavourite(const QString& filePath)
 
 void AudioPlayer::saveFavourites()
 {
-    qDebug() << "AudioPlayer: saveFavourites called";
     QSettings settings;
     settings.setValue("favourites", favourites);
 }
 
 void AudioPlayer::loadFavourites()
 {
-    qDebug() << "AudioPlayer: loadFavourites called";
     QSettings settings;
     favourites = settings.value("favourites", QStringList()).toStringList();
 }
 
 void AudioPlayer::addPlaylist(const QString& name, const QStringList& files)
 {
-    qDebug() << "AudioPlayer: addPlaylist called for" << name;
     playlists[name] = files;
     savePlaylists();
     emit playlistsChanged();
@@ -267,7 +245,6 @@ void AudioPlayer::addPlaylist(const QString& name, const QStringList& files)
 
 void AudioPlayer::removePlaylist(const QString& name)
 {
-    qDebug() << "AudioPlayer: removePlaylist called for" << name;
     playlists.remove(name);
     savePlaylists();
     emit playlistsChanged();
@@ -275,7 +252,6 @@ void AudioPlayer::removePlaylist(const QString& name)
 
 void AudioPlayer::savePlaylists()
 {
-    qDebug() << "AudioPlayer: savePlaylists called";
     QSettings settings;
     settings.beginGroup("playlists");
     settings.remove("");
@@ -287,7 +263,6 @@ void AudioPlayer::savePlaylists()
 
 void AudioPlayer::loadPlaylists()
 {
-    qDebug() << "AudioPlayer: loadPlaylists called";
     QSettings settings;
     settings.beginGroup("playlists");
     QStringList playlistNames = settings.childKeys();

@@ -46,7 +46,7 @@ Item {
 
     onFilteredFilesChanged: {
         let currentSong = audioPlayer.curId >= 0 && audioPlayer.curId < audioPlayer.curSongList.length ?
-                          audioPlayer.curSongList[audioPlayer.curId] : ""
+                audioPlayer.curSongList[audioPlayer.curId] : ""
 
         if (filteredFiles.length > 0) {
             audioPlayer.setCurSongList(filteredFiles)
@@ -80,10 +80,7 @@ Item {
             radius: 20
             border.color: "transparent"
         }
-
-        onTextChanged: {
-            searchQuery = text
-        }
+        onTextChanged: searchQuery = text
     }
 
     ComboBox {
@@ -272,8 +269,25 @@ Item {
                     height: parent.height
                     onClicked: {
                         audioPlayer.setCurSongList(filteredFiles)
-                        audioPlayer.setCurId(filteredFiles.indexOf(modelData))
-                        if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause()
+                        let newId = filteredFiles.indexOf(modelData)
+                        bottomBar.crossfadeStarted=false
+                        bottomBar.fadeOutAudioPlayer.stop()
+                        bottomBar.fadeInAudioPlayer.stop()
+                        bottomBar.fadeInPlayer2.stop()
+                        bottomBar.fadeOutPlayer2.stop()
+                        audioPlayer.setCurId(newId)
+                        if (bottomBar.currentPlayer === "audioPlayer") {
+                            if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause()
+                            bottomBar.player2.stop()
+                            audioPlayer.setVolume(bottomBar.userVolume)
+                            bottomBar.audioOutput2.volume = 0
+                        } else {
+                            bottomBar.player2.source = audioPlayer.curSongList[newId]
+                            if (!bottomBar.player2.playing) bottomBar.player2.play()
+                            audioPlayer.stop()
+                            bottomBar.audioOutput2.volume = bottomBar.userVolume
+                            audioPlayer.setVolume(0)
+                        }
                     }
                 }
             }
