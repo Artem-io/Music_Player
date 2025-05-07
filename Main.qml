@@ -22,9 +22,6 @@ Window {
         id: contentLoader
         anchors.bottom: bottomBar.top
         anchors.horizontalCenter: parent.horizontalCenter
-        // width: 500 * scaleFactor
-        // height: 530 * scaleFactor
-
         sourceComponent: {
             switch (sideBar.selectedTab) {
             case "Library": return libraryComponent
@@ -67,7 +64,6 @@ Window {
 
     Component {
         id: settings
-
         Rectangle {
             height: 550
             width: 500
@@ -75,27 +71,43 @@ Window {
             radius: 20
             color: "#36393F"
 
-            Switch {
-                id: crossfade
-                checked: audioPlayer.crossfadeEnabled // Bind to audioPlayer.crossfadeEnabled
+            Row {
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 15
+
                 Text {
-                    anchors.left: parent.right
-                    anchors.leftMargin: 10
-                    anchors.verticalCenter: parent.verticalCenter
                     text: "Crossfade"
                     color: root.textColor
                     font.pointSize: 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.top: parent.top
+                    anchors.topMargin: 50
                 }
 
-                anchors {
-                    top: parent.top
-                    left: parent.left
-                    topMargin: 20
-                    leftMargin: 20
+                Switch {
+                    id: crossfade
+                    checked: audioPlayer.crossfadeEnabled
+                    anchors.verticalCenter: parent.verticalCenter
+                    onCheckedChanged: audioPlayer.setCrossfadeEnabled(checked)
                 }
 
-                onCheckedChanged: {
-                    audioPlayer.setCrossfadeEnabled(checked) // Update audioPlayer.crossfadeEnabled
+                Text {
+                    text: "Duration: " + (crossfadeDurationSlider.value / 1000).toFixed(1) + "s"
+                    color: root.textColor
+                    font.pointSize: 12
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                Slider {
+                    id: crossfadeDurationSlider
+                    width: 150
+                    from: 1000
+                    to: 10000
+                    value: audioPlayer.crossfadeDuration
+                    stepSize: 1000
+                    enabled: audioPlayer.crossfadeEnabled
+                    anchors.verticalCenter: parent.verticalCenter
+                    onPressedChanged: if (!pressed) audioPlayer.setCrossfadeDuration(value)
                 }
             }
         }

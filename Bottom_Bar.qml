@@ -12,7 +12,6 @@ Item {
     anchors.bottom: parent.bottom
     property color textColor: "#D9D9D9"
     property real widthFactor: Window.width / 1536
-    property int crossfadeDuration: 5000
     property string currentPlayer: "audioPlayer"
     property bool crossfadeStarted: false
     property real userVolume: 0.2
@@ -23,6 +22,7 @@ Item {
     property alias fadeInPlayer2: fadeInPlayer2
     property alias fadeOutPlayer2: fadeOutPlayer2
     property bool repeatEnabled: false
+    property bool crossfadeTriggered: false
 
     MediaPlayer {
         id: player2
@@ -38,16 +38,16 @@ Item {
         property: "volume"
         from: root.userVolume
         to: 0
-        duration: root.crossfadeDuration
+        duration: audioPlayer.crossfadeDuration
         easing.type: Easing.Linear
         onStopped: {
             if (currentPlayer === "audioPlayer") {
                 audioPlayer.stop()
-                if (audioPlayer.curId +1 < audioPlayer.curSongList.length) {
+                if (audioPlayer.curId + 1 < audioPlayer.curSongList.length) {
                     audioPlayer.setCurId(audioPlayer.curId + 1)
                     currentPlayer = "player2"
-                    //console.log("Stopped")
                     crossfadeStarted = false
+                    crossfadeTriggered = false
                 }
             }
         }
@@ -59,7 +59,7 @@ Item {
         property: "volume"
         from: 0
         to: root.userVolume
-        duration: root.crossfadeDuration
+        duration: audioPlayer.crossfadeDuration
         easing.type: Easing.Linear
     }
 
@@ -69,7 +69,7 @@ Item {
         property: "volume"
         from: 0
         to: root.userVolume
-        duration: root.crossfadeDuration
+        duration: audioPlayer.crossfadeDuration
         easing.type: Easing.Linear
     }
 
@@ -79,16 +79,16 @@ Item {
         property: "volume"
         from: root.userVolume
         to: 0
-        duration: root.crossfadeDuration
+        duration: audioPlayer.crossfadeDuration
         easing.type: Easing.Linear
         onStopped: {
             if (currentPlayer === "player2") {
                 player2.stop()
-                if (audioPlayer.curId +1 < audioPlayer.curSongList.length) {
+                if (audioPlayer.curId + 1 < audioPlayer.curSongList.length) {
                     player2.source = audioPlayer.curSongList[audioPlayer.curId + 1]
                     currentPlayer = "audioPlayer"
-                    //console.log("Stopped")
                     crossfadeStarted = false
+                    crossfadeTriggered = false
                 }
             }
         }
@@ -113,9 +113,10 @@ Item {
                 width: bottomBar.butWidth
                 height: bottomBar.butHeight
                 scale: 0.65
-                image: root.repeatEnabled? "assets/icons/repeat.png" : "assets/icons/repeat_dis.png"
+                image: root.repeatEnabled ? "assets/icons/repeat.png" : "assets/icons/repeat_dis.png"
                 onClicked: {
                     crossfadeStarted = false
+                    crossfadeTriggered = false
                     repeatEnabled = !repeatEnabled
                 }
             }
@@ -129,10 +130,8 @@ Item {
                 image: enabled ? "assets/icons/next.png" : "assets/icons/next_un.png"
                 onClicked: {
                     let newId
-                    if(crossfadeStarted) {
-                        currentPlayer === "audioPlayer"? newId = audioPlayer.curId-1 : newId = audioPlayer.curId-2
-                    }
-                    else newId = audioPlayer.curId-1
+                    if (crossfadeStarted) currentPlayer === "audioPlayer" ? newId = audioPlayer.curId - 1 : newId = audioPlayer.curId - 2
+                    else newId = audioPlayer.curId - 1
                     fadeOutAudioPlayer.stop()
                     fadeInPlayer2.stop()
                     fadeOutPlayer2.stop()
@@ -152,6 +151,7 @@ Item {
                         audioPlayer.setVolume(0)
                     }
                     crossfadeStarted = false
+                    crossfadeTriggered = false
                 }
             }
 
@@ -178,13 +178,28 @@ Item {
                     height: bottomBar.butHeight
                     scale: 1.4
                     image: {
-                        if(!enabled) "assets/icons/play_un.png"
-                        else if(currentPlayer === "audioPlayer") audioPlayer.isPlaying? "assets/icons/pause.png" : "assets/icons/play.png"
-                        else player2.playing? "assets/icons/pause.png" : "assets/icons/play.png"
+                        if (!enabled) "assets/icons/play_un.png"
+                        else if (currentPlayer === "audioPlayer") audioPlayer.isPlaying ? "assets/icons/pause.png" : "assets/icons/play.png"
+                        else player2.playing ? "assets/icons/pause.png" : "assets/icons/play.png"
                     }
                     onClicked: {
-                        if(currentPlayer === "audioPlayer") audioPlayer.togglePlayPause()
-                        else player2.playing? player2.pause() : player2.play()
+                        if (crossfadeStarted) {
+                            fadeOutAudioPlayer.stop()
+                            fadeInAudioPlayer.stop()
+                            fadeInPlayer2.stop()
+                            fadeOutPlayer2.stop()
+                            audioPlayer.stop()
+                            player2.stop()
+                            audioPlayer.setVolume(root.userVolume)
+                            audioOutput2.volume = 0
+                            crossfadeStarted = false
+                            crossfadeTriggered = false
+                            currentPlayer = "audioPlayer"
+                        }
+                        else {
+                            if (currentPlayer === "audioPlayer") audioPlayer.togglePlayPause()
+                            else player2.playing? player2.pause() : player2.play()
+                        }
                     }
                 }
             }
@@ -198,10 +213,8 @@ Item {
                 image: enabled ? "assets/icons/next.png" : "assets/icons/next_un.png"
                 onClicked: {
                     let newId
-                    if(crossfadeStarted) {
-                        currentPlayer === "audioPlayer"? newId = audioPlayer.curId+1 : newId = audioPlayer.curId
-                    }
-                    else newId = audioPlayer.curId+1
+                    if (crossfadeStarted) currentPlayer === "audioPlayer" ? newId = audioPlayer.curId + 1 : newId = audioPlayer.curId
+                    else newId = audioPlayer.curId + 1
                     fadeOutAudioPlayer.stop()
                     fadeInPlayer2.stop()
                     fadeOutPlayer2.stop()
@@ -212,7 +225,8 @@ Item {
                         player2.stop()
                         audioPlayer.setVolume(root.userVolume)
                         audioOutput2.volume = 0
-                    } else {
+                    }
+                    else {
                         player2.source = audioPlayer.curSongList[newId]
                         if (!player2.playing) player2.play()
                         audioPlayer.stop()
@@ -220,6 +234,7 @@ Item {
                         audioPlayer.setVolume(0)
                     }
                     crossfadeStarted = false
+                    crossfadeTriggered = false
                 }
             }
 
@@ -237,6 +252,7 @@ Item {
                         fadeInPlayer2.stop()
                         fadeOutPlayer2.stop()
                         crossfadeStarted = false
+                        crossfadeTriggered = false
                         let randomIndex = Math.floor(Math.random() * audioPlayer.curSongList.length)
                         while (randomIndex === audioPlayer.curId) randomIndex = Math.floor(Math.random() * audioPlayer.curSongList.length)
                         audioPlayer.setCurId(randomIndex)
@@ -278,6 +294,7 @@ Item {
             value: currentPlayer === "audioPlayer" ? audioPlayer.position : player2.position
             onMoved: {
                 crossfadeStarted = false
+                crossfadeTriggered = false
                 if (currentPlayer === "audioPlayer") audioPlayer.setPosition(value)
                 else player2.position = value
             }
@@ -326,38 +343,87 @@ Item {
             }
 
             onValueChanged: {
-                if (crossfadeStarted) return
+                if (crossfadeStarted || crossfadeTriggered) return
 
-                else if (currentPlayer === "audioPlayer") {
+                if (currentPlayer === "audioPlayer") {
                     if (audioPlayer.curId >= 0 && audioPlayer.curId < audioPlayer.curSongList.length) {
                         let index = audioPlayer.filePaths.indexOf(audioPlayer.curSongList[audioPlayer.curId])
                         let duration = index >= 0 ? audioPlayer.fileDurations[index] : 0
                         let remainingTime = (duration - audioPlayer.position) / 1000
-                        if (remainingTime <= 5 && !repeatEnabled && audioPlayer.curId + 1 < audioPlayer.curSongList.length) {
-                            //console.log("Started")
+
+                        if (audioPlayer.crossfadeEnabled && remainingTime <= (audioPlayer.crossfadeDuration / 1000) && remainingTime > (audioPlayer.crossfadeDuration / 1000 - 0.1) && !repeatEnabled && audioPlayer.curId + 1 < audioPlayer.curSongList.length) {
                             crossfadeStarted = true
+                            crossfadeTriggered = true
                             player2.source = audioPlayer.curSongList[audioPlayer.curId + 1]
                             player2.play()
                             fadeOutAudioPlayer.start()
                             fadeInPlayer2.start()
                         }
-                        else if(remainingTime <= 0.3) {
-                            audioPlayer.setPosition(0)
+                        else if (remainingTime <= 0.3) {
+                            if (repeatEnabled) {
+                                audioPlayer.setPosition(0)
+                                if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause()
+                            }
+                            else if (audioPlayer.curId + 1 < audioPlayer.curSongList.length) {
+                                fadeOutAudioPlayer.stop()
+                                fadeInPlayer2.stop()
+                                fadeOutPlayer2.stop()
+                                fadeInAudioPlayer.stop()
+                                audioPlayer.setCurId(audioPlayer.curId + 1)
+                                audioPlayer.setVolume(root.userVolume)
+                                audioOutput2.volume = 0
+                                player2.stop()
+                                if (!audioPlayer.isPlaying) audioPlayer.togglePlayPause()
+                                currentPlayer = "audioPlayer"
+                                crossfadeStarted = false
+                                crossfadeTriggered = false
+                            }
+                            else {
+                                audioPlayer.setPosition(0)
+                                audioPlayer.stop()
+                                currentPlayer = "audioPlayer"
+                                crossfadeStarted = false
+                                crossfadeTriggered = false
+                            }
                         }
                     }
                 }
                 else {
                     let remainingTime = (player2.duration - player2.position) / 1000
-                    if (remainingTime <= 5 && !repeatEnabled && audioPlayer.curId + 1 < audioPlayer.curSongList.length) {
-                        //console.log("Started")
+                    if (audioPlayer.crossfadeEnabled && remainingTime <= (audioPlayer.crossfadeDuration / 1000) && remainingTime > (audioPlayer.crossfadeDuration / 1000 - 0.1) && !repeatEnabled && audioPlayer.curId + 1 < audioPlayer.curSongList.length) {
                         crossfadeStarted = true
+                        crossfadeTriggered = true
                         audioPlayer.setCurId(audioPlayer.curId + 1)
                         audioPlayer.togglePlayPause()
                         fadeOutPlayer2.start()
                         fadeInAudioPlayer.start()
                     }
-                    else if(remainingTime <= 0.3) {
-                        player2.position=0
+                    else if (remainingTime <= 0.3) {
+                        if (repeatEnabled) {
+                            player2.position = 0
+                            if (!player2.playing) player2.play()
+                        }
+                        else if (audioPlayer.curId + 1 < audioPlayer.curSongList.length) {
+                            fadeOutAudioPlayer.stop()
+                            fadeInPlayer2.stop()
+                            fadeOutPlayer2.stop()
+                            fadeInAudioPlayer.stop()
+                            audioPlayer.setCurId(audioPlayer.curId + 1)
+                            audioPlayer.setVolume(root.userVolume)
+                            audioOutput2.volume = 0
+                            player2.stop()
+                            audioPlayer.togglePlayPause()
+                            currentPlayer = "audioPlayer"
+                            crossfadeStarted = false
+                            crossfadeTriggered = false
+                        }
+                        else {
+                            player2.position = 0
+                            player2.stop()
+                            currentPlayer = "audioPlayer"
+                            crossfadeStarted = false
+                            crossfadeTriggered = false
+                        }
                     }
                 }
             }
@@ -373,7 +439,7 @@ Item {
             to: 1
             value: root.userVolume
             onMoved: {
-                if(!crossfadeStarted) {
+                if (!crossfadeStarted) {
                     root.userVolume = value
                     audioOutput2.volume = value
                     audioPlayer.setVolume(value)
@@ -397,16 +463,14 @@ Item {
 
                 Image_Button {
                     image: {
-                        if(volumeSlider.value === 0) "assets/icons/volume_null.png"
-                        else volumeSlider.value<0.5? "assets/icons/volume_half.png" : "assets/icons/volume_full.png"
+                        if (volumeSlider.value === 0) "assets/icons/volume_null.png"
+                        else volumeSlider.value < 0.5 ? "assets/icons/volume_half.png" : "assets/icons/volume_full.png"
                     }
                     width: 25
                     height: 25
                     anchors.right: parent.left
                     anchors.rightMargin: 20
                     y: -7
-
-                    onClicked: audioPlayer.volume? audioPlayer.setVolume(0) : audioPlayer.setVolume(0.2)
                 }
             }
 

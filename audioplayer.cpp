@@ -21,6 +21,7 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), curId(-1), m_crossf
 
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
     m_crossfadeEnabled = settings.value("crossfadeEnabled", false).toBool();
+    m_crossfadeDuration = settings.value("crossfadeDuration", 5000).toInt();
 }
 
 void AudioPlayer::setCrossfadeEnabled(bool enabled)
@@ -30,6 +31,16 @@ void AudioPlayer::setCrossfadeEnabled(bool enabled)
         QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
         settings.setValue("crossfadeEnabled", m_crossfadeEnabled);
         emit crossfadeStateChanged();
+    }
+}
+
+void AudioPlayer::setCrossfadeDuration(int duration)
+{
+    if (m_crossfadeDuration != duration && duration >= 1000 && duration <= 10000) {
+        m_crossfadeDuration = duration;
+        QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+        settings.setValue("crossfadeDuration", m_crossfadeDuration);
+        emit crossfadeDurationChanged();
     }
 }
 
@@ -100,10 +111,8 @@ void AudioPlayer::togglePlayPause()
 {
     if (player->playbackState() == QMediaPlayer::PlayingState) {
         player->pause();
-        qDebug()<<"Stop playing on audio";
     }
     else {
-        qDebug()<<"Starting playing on audio";
         player->play();
         if (curId >= 0 && curId < curSongList.size()) {
             playCounts[curSongList[curId]] = playCounts.value(curSongList[curId], 0) + 1;
