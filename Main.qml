@@ -6,7 +6,9 @@ import AudioPlayer 1.0
 Window {
     id: root
     width: 1536
+    minimumWidth: 672
     height: 793
+    minimumHeight: 386
     visible: true
     visibility: Window.Maximized
     title: qsTr("Music Player")
@@ -33,9 +35,14 @@ Window {
         }
 
         onLoaded: {
-            if (sideBar.selectedTab === "Library") audioPlayer.setCurSongList(audioPlayer.filePaths)
-            else if (sideBar.selectedTab === "Favorites")
-                audioPlayer.setCurSongList(audioPlayer.favourites)
+            if (sideBar.selectedTab === "Library") {
+                audioPlayer.setCurSongList(audioPlayer.filePaths);
+            }
+            else if (sideBar.selectedTab === "Favorites") {
+                audioPlayer.setCurSongList(audioPlayer.favourites);
+            }
+            else if (sideBar.selectedTab === "Playlists") {
+            }
         }
     }
 
@@ -80,8 +87,6 @@ Window {
                     color: root.textColor
                     font.pointSize: 12
                     anchors.verticalCenter: parent.verticalCenter
-                    anchors.top: parent.top
-                    anchors.topMargin: 50
                 }
 
                 Switch {
@@ -119,11 +124,12 @@ Window {
         width: parent.width
     }
 
-    FileDialog {
-        id: fileDialog
-        nameFilters: ["Audio Files (*.mp3 *.m4a *.wav *.aac *.opus)"]
-        fileMode: FileDialog.OpenFiles
-        onAccepted: audioPlayer.setFiles(fileDialog.selectedFiles)
+    FolderDialog {
+        id: folderDialog
+        title: "Select Music Folder"
+        onAccepted: {
+            audioPlayer.setFolder(folderDialog.selectedFolder.toString())
+        }
     }
 
     Button {
@@ -132,6 +138,6 @@ Window {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.margins: 20
-        onClicked: fileDialog.open()
+        onClicked: folderDialog.open()
     }
 }

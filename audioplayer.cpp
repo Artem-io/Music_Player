@@ -17,11 +17,84 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), curId(-1), m_crossf
     loadFavourites();
     loadPlaylists();
     loadPlayData();
-    curSongList = filePaths;
+
+    if (!filePaths.isEmpty()) {
+        curSongList = filePaths;
+    } else {
+        curSongList.clear();
+    }
 
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
     m_crossfadeEnabled = settings.value("crossfadeEnabled", false).toBool();
     m_crossfadeDuration = settings.value("crossfadeDuration", 5000).toInt();
+}
+
+QStringList AudioPlayer::getPlaylistSongs(const QString& playlistName) const
+{
+    if (playlists.contains(playlistName)) {
+        return playlists[playlistName].toStringList();
+    }
+    return QStringList();
+}
+
+void AudioPlayer::setFolder(const QString& folderPath)
+{
+    QString localFolder;
+    if (folderPath.startsWith("file:")) {
+        localFolder = QUrl(folderPath).toLocalFile();
+    } else {
+        localFolder = folderPath;
+    }
+
+    if (localFolder.isEmpty() || !QDir(localFolder).exists()) {
+        qDebug() << "AudioPlayer: Invalid or non-existent folder:" << localFolder;
+        return;
+    }
+
+    m_lastFolderPath = localFolder;
+    saveLastFolderPath(localFolder);
+
+    filePaths.clear();
+    fileDurations.clear();
+
+    QStringList nameFilters = {"*.mp3", "*.m4a", "*.wav", "*.aac", "*.opus"};
+    QDir dir(localFolder);
+    dir.setNameFilters(nameFilters);
+    dir.setFilter(QDir::Files | QDir::NoDotAndDotDot);
+
+    QStringList audioFiles = dir.entryList();
+    for (const QString& fileName : audioFiles) {
+        QString filePath = dir.absoluteFilePath(fileName);
+        if (QFileInfo(filePath).exists()) {
+            filePaths.append(filePath);
+            player->setSource(QUrl::fromLocalFile(filePath));
+            while (player->mediaStatus() != QMediaPlayer::LoadedMedia &&
+                   player->mediaStatus() != QMediaPlayer::InvalidMedia) {
+                QCoreApplication::processEvents();
+            }
+            fileDurations.append(player->duration());
+        } else {
+            qDebug() << "AudioPlayer: Skipped invalid or missing file:" << filePath;
+        }
+    }
+
+    if (!filePaths.isEmpty()) {
+        curId = 0;
+        curSongList = filePaths;
+        player->setSource(QUrl::fromLocalFile(filePaths[curId]));
+        saveFilePaths(filePaths);
+        emit filePathsChanged();
+        emit fileDurationsChanged();
+        emit curIdChanged();
+        emit curSongListChanged();
+    } else {
+        curId = -1;
+        curSongList.clear();
+        emit filePathsChanged();
+        emit fileDurationsChanged();
+        emit curIdChanged();
+        emit curSongListChanged();
+    }
 }
 
 void AudioPlayer::setCrossfadeEnabled(bool enabled)
@@ -208,7 +281,70 @@ void AudioPlayer::setVolume(float vol)
 void AudioPlayer::loadLastFiles()
 {
     QStringList lastFiles = getLastFilePaths();
-    if (!lastFiles.isEmpty()) setFiles(lastFiles);
+    QStringList validFiles;
+    QList<int> validDurations;
+    QString folderPath = getLastFolderPathFromSettings();
+
+    for (const QString& filePath : lastFiles) {
+        if (QFileInfo(filePath).exists()) {
+            validFiles.append(filePath);
+            player->setSource(QUrl::fromLocalFile(filePath));
+            while (player->mediaStatus() != QMediaPlayer::LoadedMedia &&
+                   player->mediaStatus() != QMediaPlayer::InvalidMedia) {
+                QCoreApplication::processEvents();
+            }
+            validDurations.append(player->duration());
+        } else {
+            qDebug() << "AudioPlayer: Removed invalid file path from lastFiles:" << filePath;
+        }
+    }
+
+    if (!folderPath.isEmpty() && QDir(folderPath).exists()) {
+        m_lastFolderPath = folderPath;
+        QStringList nameFilters = {"*.mp3", "*.m4a", "*.wav", "*.aac", "*.opus"};
+        QDir dir(folderPath);
+        dir.setNameFilters(nameFilters);
+        dir.setFilter(QDir::Files | QDir::NoDotAndDotDot);
+
+        QStringList audioFiles = dir.entryList();
+        for (const QString& fileName : audioFiles) {
+            QString filePath = dir.absoluteFilePath(fileName);
+            if (QFileInfo(filePath).exists() && !validFiles.contains(filePath)) {
+                validFiles.append(filePath);
+                player->setSource(QUrl::fromLocalFile(filePath));
+                while (player->mediaStatus() != QMediaPlayer::LoadedMedia &&
+                       player->mediaStatus() != QMediaPlayer::InvalidMedia) {
+                    QCoreApplication::processEvents();
+                }
+                validDurations.append(player->duration());
+                qDebug() << "AudioPlayer: Added new file:" << filePath;
+            }
+        }
+    }
+
+    filePaths = validFiles;
+    fileDurations = validDurations;
+
+    if (filePaths != lastFiles || !folderPath.isEmpty()) {
+        saveFilePaths(filePaths);
+    }
+
+    if (!filePaths.isEmpty()) {
+        curSongList = filePaths;
+        if (curId < 0 || curId >= filePaths.size()) {
+            curId = 0;
+            player->setSource(QUrl::fromLocalFile(filePaths[curId]));
+        }
+    }
+    else {
+        curSongList.clear();
+        curId = -1;
+    }
+
+    emit filePathsChanged();
+    emit fileDurationsChanged();
+    emit curSongListChanged();
+    emit curIdChanged();
 }
 
 void AudioPlayer::saveFilePaths(const QStringList &filePaths)
@@ -239,12 +375,6 @@ void AudioPlayer::saveFavourites()
     settings.setValue("favourites", favourites);
 }
 
-void AudioPlayer::loadFavourites()
-{
-    QSettings settings;
-    favourites = settings.value("favourites", QStringList()).toStringList();
-}
-
 void AudioPlayer::addPlaylist(const QString& name, const QStringList& files)
 {
     playlists[name] = files;
@@ -269,14 +399,128 @@ void AudioPlayer::savePlaylists()
     }
     settings.endGroup();
 }
+void AudioPlayer::loadFavourites()
+{
+    QSettings settings;
+    QStringList loadedFavourites = settings.value("favourites", QStringList()).toStringList();
+    QStringList validFavourites;
+
+    for (const QString& filePath : loadedFavourites) {
+        if (QFileInfo(filePath).exists() && filePaths.contains(filePath)) {
+            validFavourites.append(filePath);
+        }
+        else {
+            qDebug() << "AudioPlayer: Removed invalid favourite:" << filePath;
+        }
+    }
+
+    favourites = validFavourites;
+
+    if (favourites != loadedFavourites) {
+        saveFavourites();
+    }
+
+    if (curSongList == loadedFavourites) {
+        curSongList = favourites;
+        if (!curSongList.isEmpty()) {
+            if (curId >= curSongList.size()) {
+                curId = 0;
+                player->setSource(QUrl::fromLocalFile(curSongList[curId]));
+            }
+        }
+        else {
+            curId = -1;
+        }
+        emit curSongListChanged();
+        emit curIdChanged();
+    }
+
+    emit favouritesChanged();
+}
 
 void AudioPlayer::loadPlaylists()
 {
     QSettings settings;
     settings.beginGroup("playlists");
     QStringList playlistNames = settings.childKeys();
+    QVariantMap validPlaylists;
+
     for (const QString& name : playlistNames) {
-        playlists[name] = settings.value(name).toStringList();
+        QStringList files = settings.value(name).toStringList();
+        QStringList validFiles;
+
+        for (const QString& filePath : files) {
+            if (QFileInfo(filePath).exists() && filePaths.contains(filePath)) {
+                validFiles.append(filePath);
+            } else {
+                qDebug() << "AudioPlayer: Removed invalid file from playlist" << name << ":" << filePath;
+            }
+        }
+
+        if (!validFiles.isEmpty()) {
+            validPlaylists[name] = QVariant(validFiles);
+        } else {
+            qDebug() << "AudioPlayer: Removed empty playlist:" << name;
+        }
     }
+
+    playlists = validPlaylists;
+
+    if (!playlistNames.isEmpty() || !playlists.isEmpty()) {
+        savePlaylists();
+    }
+
+    if (!curSongList.isEmpty()) {
+        bool foundMatch = false;
+        for (const QString& name : validPlaylists.keys()) {
+            QStringList playlistSongs = validPlaylists[name].toStringList();
+            if (curSongList == playlistSongs) {
+                foundMatch = true;
+                if (curSongList != playlistSongs) {
+                    curSongList = playlistSongs;
+                    if (!curSongList.isEmpty()) {
+                        if (curId >= curSongList.size()) {
+                            curId = 0;
+                            player->setSource(QUrl::fromLocalFile(curSongList[curId]));
+                        }
+                    }
+                    else {
+                        curId = -1;
+                    }
+                    emit curSongListChanged();
+                    emit curIdChanged();
+                }
+                break;
+            }
+        }
+        if (!foundMatch && curSongList != filePaths) {
+            curSongList = filePaths;
+            if (!curSongList.isEmpty()) {
+                if (curId >= curSongList.size()) {
+                    curId = 0;
+                    player->setSource(QUrl::fromLocalFile(curSongList[curId]));
+                }
+            }
+            else {
+                curId = -1;
+            }
+            emit curSongListChanged();
+            emit curIdChanged();
+        }
+    }
+
     settings.endGroup();
+    emit playlistsChanged();
+}
+
+void AudioPlayer::saveLastFolderPath(const QString& folderPath)
+{
+    QSettings settings;
+    settings.setValue("lastFolderPath", folderPath);
+}
+
+QString AudioPlayer::getLastFolderPathFromSettings()
+{
+    QSettings settings;
+    return settings.value("lastFolderPath", QString()).toString();
 }

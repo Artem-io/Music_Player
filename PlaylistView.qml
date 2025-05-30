@@ -174,7 +174,7 @@ Item {
                                 originalPlaylistName = name
                                 let newArr = new Array(audioPlayer.filePaths.length)
                                 newArr.fill(false)
-                                let currentFiles = audioPlayer.playlists[name]
+                                let currentFiles = audioPlayer.getPlaylistSongs(name)
                                 for (let i = 0; i < audioPlayer.filePaths.length; i++)
                                     if (currentFiles.includes(audioPlayer.filePaths[i])) newArr[i] = true
                                 root.checkedStates = newArr
@@ -288,8 +288,9 @@ Item {
                             if (isEditing && originalPlaylistName !== "") {
                                 audioPlayer.removePlaylist(originalPlaylistName)
                                 audioPlayer.addPlaylist(playlistName.text, selectedFiles)
+                            } else {
+                                audioPlayer.addPlaylist(playlistName.text, selectedFiles)
                             }
-                            else audioPlayer.addPlaylist(playlistName.text, selectedFiles)
                             let newArr = new Array(audioPlayer.filePaths.length)
                             newArr.fill(false)
                             root.checkedStates = newArr
@@ -320,5 +321,22 @@ Item {
         anchors.fill: parent
         baseSource: files
         property var files: []
+
+        Image_Button {
+            id: backButton
+            image: "assets/icons/back.png"
+            anchors {
+                right: parent.left
+                rightMargin: 15
+                top: parent.top
+                topMargin: 5
+            }
+
+            onClicked: {
+                playlistFilesView.visible = false
+                audioPlayer.setCurSongList(audioPlayer.filePaths)
+                playlistFilesView.searchQuery = ""
+            }
+        }
     }
 }

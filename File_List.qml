@@ -6,8 +6,8 @@ import AudioPlayer 1.0
 
 Item {
     id: root
-    width: 500 //* widthFactor //changed
-    height: 530 //* heightFactor / 793 //changed
+    width: 500 * widthFactor
+    height: 530 * heightFactor
 
     property int textSize: 11
     property color textColor: "#E6E6E6"
@@ -85,10 +85,10 @@ Item {
 
     ComboBox {
         id: sortCombo
-        width: (root.width-315) //* widthFactor
+        width: (root.width-315)
         height: searchField.height
         anchors.left: searchField.right
-        anchors.leftMargin: 15 //* widthFactor //changed
+        anchors.leftMargin: 15
         model: [
             "Default",
             "Most Played",
@@ -179,6 +179,7 @@ Item {
         height: 550
         width: parent.width
         radius: 20
+        clip: true
         color: "#36393F"
         anchors.top: searchField.bottom
         anchors.topMargin: 10
@@ -189,9 +190,8 @@ Item {
             anchors {
                 fill: parent
                 topMargin: 20
-                bottomMargin: 70
-                leftMargin: 15
-                rightMargin: 15
+                bottomMargin: 80
+                leftMargin: 17 * widthFactor * widthFactor
             }
 
             Text {
@@ -219,8 +219,8 @@ Item {
                 Row {
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.left: parent.left
-                    anchors.leftMargin: 20
-                    spacing: 50
+                    anchors.leftMargin: 10
+                    spacing: 50 * Math.pow(widthFactor, 4)
 
                     Text { // index
                         text: index + 1
@@ -265,7 +265,7 @@ Item {
 
                 MouseArea {
                     id: mArea
-                    width: parent.width - 130
+                    width: (parent.width - 130) * widthFactor
                     height: parent.height
                     onClicked: {
                         audioPlayer.setCurSongList(filteredFiles)
