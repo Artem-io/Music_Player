@@ -69,7 +69,7 @@ Item {
 
     TextField {
         id: searchField
-        width: parent.width-200
+        width: 300 * widthFactor
         height: 40
         placeholderText: "Search..."
         color: root.textColor
@@ -85,10 +85,10 @@ Item {
 
     ComboBox {
         id: sortCombo
-        width: (root.width-315)
+        width: 185 * widthFactor
         height: searchField.height
         anchors.left: searchField.right
-        anchors.leftMargin: 15
+        anchors.leftMargin: 15 * widthFactor
         model: [
             "Default",
             "Most Played",
@@ -111,6 +111,7 @@ Item {
             color: "#36393F"
             radius: 20
         }
+        clip: true
 
         contentItem: Text {
             text: sortCombo.displayText
@@ -144,7 +145,6 @@ Item {
                         color: root.textColor
                         font.pointSize: 13
                         verticalAlignment: Text.AlignVCenter
-                        leftPadding: 15
                         scale: hovered? 1.05 : 1.0
 
                         Behavior on scale {
@@ -265,7 +265,7 @@ Item {
 
                 MouseArea {
                     id: mArea
-                    width: (parent.width - 130) * widthFactor
+                    width: 315 * widthFactor
                     height: parent.height
                     onClicked: {
                         audioPlayer.setCurSongList(filteredFiles)

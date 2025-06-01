@@ -5,8 +5,9 @@ import AudioPlayer 1.0
 
 Item {
     id: root
-    width: 500
+    width: 500 * widthFactor
     height: 530
+    property real widthFactor: Window.width / 1536
     property color textColor: "#E6E6E6"
     property var checkedStates: {
         let arr = new Array(audioPlayer.filePaths.length)
@@ -20,6 +21,7 @@ Item {
         id: addPlaylistButton
         width: 30
         height: 30
+        y: -30
         x: -150
         rotation: 45
         visible: !playlistFilesView.visible

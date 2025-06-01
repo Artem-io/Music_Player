@@ -15,7 +15,7 @@ Item {
         bottom: bottomBar.top
         bottomMargin: 30
         left: parent.left
-        leftMargin: 30 * widthFactor * widthFactor * widthFactor
+        leftMargin: 30 * Math.pow(widthFactor, 3)
     }
 
     Rectangle {

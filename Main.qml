@@ -14,7 +14,6 @@ Window {
     title: qsTr("Music Player")
     color: "#1E2124"
     property color textColor: "#E6E6E6"
-    property real scaleFactor: Window.width/1536
 
     AudioPlayer { id: audioPlayer }
 
@@ -65,54 +64,63 @@ Window {
     Component {
         id: playlistComponent
         PlaylistView {
-            anchors.centerIn: parent
+            x: 30
         }
     }
 
     Component {
         id: settings
         Rectangle {
-            height: 550
-            width: 500
+            height: 550 * (Window.height/793)
+            width: 500 * (Window.width / 1536)
             y: 20
             radius: 20
             color: "#36393F"
 
-            Row {
-                anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 15
-
-                Text {
-                    text: "Crossfade"
-                    color: root.textColor
-                    font.pointSize: 12
-                    anchors.verticalCenter: parent.verticalCenter
+            Column {
+                anchors {
+                    left: parent.left
+                    leftMargin: 15
+                    top: parent.top
+                    topMargin: 10
                 }
+                spacing: 10
+                Row {
+                    spacing: 15
 
-                Switch {
-                    id: crossfade
-                    checked: audioPlayer.crossfadeEnabled
-                    anchors.verticalCenter: parent.verticalCenter
-                    onCheckedChanged: audioPlayer.setCrossfadeEnabled(checked)
+                    Text {
+                        text: "Crossfade"
+                        color: root.textColor
+                        font.pointSize: 12
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    Switch {
+                        id: crossfade
+                        checked: audioPlayer.crossfadeEnabled
+                        anchors.verticalCenter: parent.verticalCenter
+                        onCheckedChanged: audioPlayer.setCrossfadeEnabled(checked)
+                    }
                 }
+                Row {
+                    Text {
+                        text: "Duration: " + (crossfadeDurationSlider.value / 1000).toFixed(1) + "s"
+                        color: root.textColor
+                        font.pointSize: 12
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
 
-                Text {
-                    text: "Duration: " + (crossfadeDurationSlider.value / 1000).toFixed(1) + "s"
-                    color: root.textColor
-                    font.pointSize: 12
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-
-                Slider {
-                    id: crossfadeDurationSlider
-                    width: 150
-                    from: 1000
-                    to: 10000
-                    value: audioPlayer.crossfadeDuration
-                    stepSize: 1000
-                    enabled: audioPlayer.crossfadeEnabled
-                    anchors.verticalCenter: parent.verticalCenter
-                    onPressedChanged: if (!pressed) audioPlayer.setCrossfadeDuration(value)
+                    Slider {
+                        id: crossfadeDurationSlider
+                        width: 230 * (Window.width / 1536)
+                        from: 1000
+                        to: 10000
+                        value: audioPlayer.crossfadeDuration
+                        stepSize: 1000
+                        enabled: audioPlayer.crossfadeEnabled
+                        anchors.verticalCenter: parent.verticalCenter
+                        onPressedChanged: if (!pressed) audioPlayer.setCrossfadeDuration(value)
+                    }
                 }
             }
         }

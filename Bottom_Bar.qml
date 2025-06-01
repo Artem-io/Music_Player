@@ -431,9 +431,9 @@ Item {
 
         Slider {
             id: volumeSlider
-            width: 250
+            width: 250 * widthFactor
             anchors.right: parent.right
-            anchors.rightMargin: 40
+            anchors.rightMargin: 40 * widthFactor
             anchors.verticalCenter: progressSlider.verticalCenter
             from: 0
             to: 1
@@ -469,7 +469,7 @@ Item {
                     width: 25
                     height: 25
                     anchors.right: parent.left
-                    anchors.rightMargin: 20
+                    anchors.rightMargin: 20 * widthFactor
                     y: -7
                 }
             }
